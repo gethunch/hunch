@@ -75,12 +75,22 @@ export async function updateEmail(emailIn: string): Promise<ActionResult> {
     return { error: "Could not save — try again" };
   }
 
-  const supabase = await createClient();
-  const hdrs = await headers();
-  const host = hdrs.get("host") ?? "localhost:3000";
-  const proto = hdrs.get("x-forwarded-proto") ?? "http";
-  const emailRedirectTo = `${proto}://${host}/auth/confirm-email`;
-  await supabase.auth.updateUser({ email }, { emailRedirectTo });
+  // Email update kickoff — wrapped so a Supabase failure (e.g. unallowlisted
+  // redirect URL) doesn't crash the action after the DB write succeeded.
+  try {
+    const supabase = await createClient();
+    const hdrs = await headers();
+    const host = hdrs.get("host") ?? "localhost:3000";
+    const proto = hdrs.get("x-forwarded-proto") ?? "http";
+    const emailRedirectTo = `${proto}://${host}/auth/confirm-email`;
+    const { error } = await supabase.auth.updateUser(
+      { email },
+      { emailRedirectTo },
+    );
+    if (error) console.error("[updateEmail] kickoff:", error);
+  } catch (err) {
+    console.error("[updateEmail] threw:", err);
+  }
 
   for (const p of pathsToRevalidate(me.username)) revalidatePath(p);
   return { ok: true };
@@ -92,16 +102,24 @@ export async function resendEmailVerification(): Promise<ActionResult> {
   if (!me.email) return { error: "No email on file" };
   if (me.emailVerifiedAt) return { error: "Already verified" };
 
-  const supabase = await createClient();
-  const hdrs = await headers();
-  const host = hdrs.get("host") ?? "localhost:3000";
-  const proto = hdrs.get("x-forwarded-proto") ?? "http";
-  const emailRedirectTo = `${proto}://${host}/auth/confirm-email`;
-  const { error } = await supabase.auth.updateUser(
-    { email: me.email },
-    { emailRedirectTo },
-  );
-  if (error) return { error: error.message };
+  try {
+    const supabase = await createClient();
+    const hdrs = await headers();
+    const host = hdrs.get("host") ?? "localhost:3000";
+    const proto = hdrs.get("x-forwarded-proto") ?? "http";
+    const emailRedirectTo = `${proto}://${host}/auth/confirm-email`;
+    const { error } = await supabase.auth.updateUser(
+      { email: me.email },
+      { emailRedirectTo },
+    );
+    if (error) {
+      console.error("[resendEmailVerification] kickoff:", error);
+      return { error: error.message };
+    }
+  } catch (err) {
+    console.error("[resendEmailVerification] threw:", err);
+    return { error: "Could not send right now — try again" };
+  }
   return { ok: true };
 }
 

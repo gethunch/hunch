@@ -82,12 +82,24 @@ export async function completeOnboarding(
   // Fire the email-confirmation flow. Supabase will email a verification link
   // that lands at /auth/confirm-email. We don't block onboarding on this —
   // emailVerifiedAt stays null until the link is clicked.
-  const supabase = await createClient();
-  const hdrs = await headers();
-  const host = hdrs.get("host") ?? "localhost:3000";
-  const proto = hdrs.get("x-forwarded-proto") ?? "http";
-  const emailRedirectTo = `${proto}://${host}/auth/confirm-email`;
-  await supabase.auth.updateUser({ email }, { emailRedirectTo });
+  // Wrapped in try/catch so a Supabase config issue (e.g. unallowlisted
+  // redirect URL) doesn't crash the action after the DB write succeeded.
+  try {
+    const supabase = await createClient();
+    const hdrs = await headers();
+    const host = hdrs.get("host") ?? "localhost:3000";
+    const proto = hdrs.get("x-forwarded-proto") ?? "http";
+    const emailRedirectTo = `${proto}://${host}/auth/confirm-email`;
+    const { error } = await supabase.auth.updateUser(
+      { email },
+      { emailRedirectTo },
+    );
+    if (error) {
+      console.error("[completeOnboarding] email verification kickoff:", error);
+    }
+  } catch (err) {
+    console.error("[completeOnboarding] email verification threw:", err);
+  }
 
   redirect("/contest");
 }
