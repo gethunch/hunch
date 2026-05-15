@@ -114,3 +114,21 @@ Append-only. One entry per session.
 **Notes for next session:**
 - Test fixture rows are live in the dev DB. The `test-*` users will appear in the leaderboard (Phase 4) — fine, they make for non-empty fixtures. Cleanup SQL is documented at the top of `scripts/seed-test-contest.ts`.
 - Cron endpoints are deployed to prod but not yet scheduled (Phase 6 work via `vercel.json`).
+
+---
+
+### Continued: Phase 4 shipped same session
+**Shipped:**
+- `lib/repository/users.ts` extended: `getUserById`, `getTopUsers` (only `contests_played > 0`), `getRatingHistory`, `getRecentEntries` (joins entries+contests, picks aggregated via second query and Map).
+- `components/rating-chart.tsx`: Recharts `LineChart`, dark theme, accent-green line. Client component.
+- `app/(app)/layout.tsx`: shared nav header for all authed routes. Contest / Leaderboard links + clickable display_name+rating that goes to profile. Uses cached `getCurrentUser`.
+- `/leaderboard` page: top 50 by rating; current user's row highlighted; empty state for no-players.
+- `/profile/[id]` page: name + rating + contests_played header; RatingChart with a synthetic "Start at 1500" point so single-contest users still get a line; recent entries list with rank, delta (colored), 5 picks (chips), return (colored); "In progress" label for open entries.
+- Recharts added (~95kb gzipped). Acceptable for this much chart functionality vs. building from scratch.
+- `/contest` page header simplified — display_name + rating moved to global nav, no duplication.
+
+**Phases 1+2+3+4 — DONE.** Halfway through Phase 5 = polish, Phase 6 = cron schedules + launch.
+
+**Notes:**
+- Real user won't appear on leaderboard until first contest resolves (`contests_played > 0` filter). By design — leaderboard = proven players.
+- Profile's "Start at 1500" synthetic point lets the chart be useful even with 1 resolved contest.
