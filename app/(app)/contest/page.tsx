@@ -15,25 +15,12 @@ export default async function ContestPage() {
   const contest = await getCurrentOpenContest(CONTEST_FORMAT_WEEKLY_PICK_5);
 
   return (
-    <main className="min-h-screen px-6 py-12">
-      <div className="max-w-3xl mx-auto space-y-10">
-        <header className="flex items-baseline justify-between">
-          <p className="text-sm text-zinc-500">{user.displayName}</p>
-          <p className="text-sm tabular-nums text-zinc-400">
-            <span className="text-zinc-200">
-              {user.rating.toLocaleString("en-IN")}
-            </span>
-            <span className="text-zinc-700 mx-2">·</span>
-            <span>{user.contestsPlayed} contests</span>
-          </p>
-        </header>
-
-        {!contest ? (
-          <EmptyState />
-        ) : (
-          <ContestSection contest={contest} userId={user.id} />
-        )}
-      </div>
+    <main className="max-w-3xl mx-auto px-6 py-10">
+      {!contest ? (
+        <EmptyState />
+      ) : (
+        <ContestSection contest={contest} userId={user.id} />
+      )}
     </main>
   );
 }
@@ -62,12 +49,14 @@ async function ContestSection({
 
   return (
     <section className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-medium">Week of {contest.periodStart}</h2>
+      <header>
+        <h1 className="text-2xl font-medium">
+          Week of {contest.periodStart}
+        </h1>
         <p className="text-sm text-zinc-500 mt-1">
           Picks lock {lockTime} · Resolves {resolveTime}
         </p>
-      </div>
+      </header>
 
       {existing ? (
         <LockedInView picks={existing.picks} />
