@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getCurrentUser } from "@/lib/repository/users";
+import { signOut } from "./actions";
 
 export default async function AppLayout({
   children,
@@ -24,18 +25,28 @@ export default async function AppLayout({
           >
             Leaderboard
           </Link>
-          {user && (
-            <Link
-              href={`/profile/${user.id}`}
-              className="ml-auto text-zinc-500 hover:text-zinc-200 transition-colors tabular-nums"
-            >
-              <span className="hidden sm:inline">{user.displayName}</span>
-              <span className="text-zinc-700 mx-2 hidden sm:inline">·</span>
-              <span className="text-zinc-300">
-                {user.rating.toLocaleString("en-IN")}
-              </span>
-            </Link>
-          )}
+          <div className="ml-auto flex items-center gap-4">
+            {user && (
+              <Link
+                href={`/profile/${user.id}`}
+                className="text-zinc-500 hover:text-zinc-200 transition-colors tabular-nums"
+              >
+                <span className="hidden sm:inline">{user.displayName}</span>
+                <span className="text-zinc-700 mx-2 hidden sm:inline">·</span>
+                <span className="text-zinc-300">
+                  {user.rating.toLocaleString("en-IN")}
+                </span>
+              </Link>
+            )}
+            <form action={signOut}>
+              <button
+                type="submit"
+                className="text-xs text-zinc-600 hover:text-zinc-300 transition-colors"
+              >
+                Sign out
+              </button>
+            </form>
+          </div>
         </div>
       </nav>
       {children}

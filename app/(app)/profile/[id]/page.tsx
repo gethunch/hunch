@@ -6,6 +6,7 @@ import {
   getUserById,
 } from "@/lib/repository/users";
 import { RatingChart, type RatingPoint } from "@/components/rating-chart";
+import { ProfileNameEditor } from "@/components/profile-name-editor";
 
 export default async function ProfilePage({
   params,
@@ -39,14 +40,13 @@ export default async function ProfilePage({
 
   return (
     <main className="max-w-3xl mx-auto px-6 py-10 space-y-10">
-      <header>
-        <h1 className="text-2xl font-medium">
-          {user.displayName}
-          {isMe && (
-            <span className="text-sm text-zinc-600 ml-3 font-normal">you</span>
-          )}
-        </h1>
-        <p className="text-sm tabular-nums text-zinc-400 mt-1">
+      <header className="space-y-1">
+        {isMe ? (
+          <ProfileNameEditor initialName={user.displayName} />
+        ) : (
+          <h1 className="text-2xl font-medium">{user.displayName}</h1>
+        )}
+        <p className="text-sm tabular-nums text-zinc-400">
           <span className="text-zinc-200">
             {user.rating.toLocaleString("en-IN")}
           </span>

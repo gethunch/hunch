@@ -7,6 +7,7 @@ import {
 import { getEntryForUser, type EntryPick } from "@/lib/repository/entries";
 import { getCurrentUser } from "@/lib/repository/users";
 import { PickFive } from "@/components/pick-five";
+import { ContestCountdown } from "@/components/contest-countdown";
 
 export default async function ContestPage() {
   const user = await getCurrentUser();
@@ -44,18 +45,16 @@ async function ContestSection({
   userId: string;
 }) {
   const existing = await getEntryForUser(contest.id, userId);
-  const lockTime = formatIST(contest.locksAt);
   const resolveTime = formatIST(contest.resolvesAt);
 
   return (
     <section className="space-y-6">
-      <header>
+      <header className="space-y-1">
         <h1 className="text-2xl font-medium">
           Week of {contest.periodStart}
         </h1>
-        <p className="text-sm text-zinc-500 mt-1">
-          Picks lock {lockTime} · Resolves {resolveTime}
-        </p>
+        <ContestCountdown locksAtISO={contest.locksAt.toISOString()} />
+        <p className="text-xs text-zinc-600">Resolves {resolveTime}</p>
       </header>
 
       {existing ? (
