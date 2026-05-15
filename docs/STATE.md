@@ -21,18 +21,28 @@ _Last updated: 2026-05-15_
 - Dark theme forced in `globals.css`; tabular-nums on by default
 
 ## Deployed
-- Nothing yet
+- **Production:** https://hunch-seven.vercel.app (Vercel, auto-deploys from `main`)
+- 5 env vars set in Vercel: Supabase URL + publishable + secret keys, pooled `DATABASE_URL`, `CRON_SECRET`
+- Auth flow verified end-to-end in prod (sign-in with test phone, `/contest` renders, user row created)
+- Repo is **public** (was private; Vercel hobby tier requires Pro for private org repos, so we flipped — no secrets in git)
 
 ## In progress
-- **Phase 1: Skeleton + auth** — auth code done; awaiting Rishi's browser smoke test, then Vercel deploy.
+- **Phase 1 — done.** Skeleton + auth shipped.
 
-## Next (in order)
-1. Smoke test in browser (sign-in flow end-to-end)
-2. Deploy to Vercel, set env vars there, verify the same flow in prod
+## Next (Phase 2: Contest seeding + entry submission)
+1. Seed script to insert next Monday's `weekly_pick_5` contest row
+2. NIFTY 50 constants (`lib/constants.ts`) — 50 symbols, hardcoded
+3. `/contest` page: list NIFTY 50, multi-select 5, submit
+4. Server action validates and writes `entries` + 5 `entry_picks`
+5. Confirmation state
 
 ## Blocked on product owner
-- Browser test of the sign-in flow at http://localhost:3000
-- Vercel account import (a Vercel team under the same email is recommended; not blocking yet)
+- Nothing for Phase 2 kickoff. (NIFTY 50 list is publicly known; we don't need anything new.)
+
+## Open questions / deferred
+- Real SMS provider for production phone OTP → Phase 6 (DLT/TRAI registration).
+- Market data source (NSE vs. Yahoo unofficial) → Phase 3.
+- Custom domain pointing to Vercel deploy → not blocking; whenever there's a brand decision.
 
 ## Known issues
 - 2 moderate npm audit warnings on initial scaffold (transitive, not actionable yet — revisit if they affect anything user-facing)

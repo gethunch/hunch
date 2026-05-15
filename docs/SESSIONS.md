@@ -78,3 +78,17 @@ Append-only. One entry per session.
 
 **Next:**
 - Phase 1 final step: Vercel deploy. Same env vars, repo import, smoke-test the prod URL.
+
+---
+
+### Continued: Phase 1 shipped
+**Shipped (continued):**
+- Vercel project created under `gethunch` (Vercel team). Deployed `gethunch/hunch` `main` → https://hunch-seven.vercel.app.
+- 5 env vars configured in Vercel (Production + Preview): Supabase URL, publishable key, secret key, pooled `DATABASE_URL`, `CRON_SECRET`. Vercel removed the "Development" toggle from the import flow; we don't use `vercel dev` anyway.
+- **Repo flipped from private to public** to escape Vercel's "private org repo requires Pro" gate. Audited first — no secrets in tracked files (only the public Supabase project ref). Cheaper than $20/month and reversible later.
+- Prod auth smoke test passed: phone OTP → `/contest` lands → user row in Supabase.
+
+**Phase 1 — DONE.**
+
+**Open questions for next session:**
+- Cloud Shell hostname in `next.config.ts` is brittle (session-ID-bound). If a future session starts and `npm run dev` fails the browser smoke test, first thing to update is that line. Consider switching to an env-driven `DEV_ALLOWED_ORIGIN` later if it becomes a recurring annoyance.
