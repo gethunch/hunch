@@ -1,10 +1,9 @@
 "use client";
 
-import Image from "next/image";
-import { useEffect, useRef, useState, useTransition } from "react";
-import { createClient } from "@/lib/supabase/browser";
-import { AVATAR_PRESETS, DEFAULT_AVATAR } from "@/lib/avatars";
+import { useEffect, useState, useTransition } from "react";
+import { DEFAULT_AVATAR } from "@/lib/avatars";
 import { EMAIL_REGEX, USERNAME_REGEX } from "@/lib/identity";
+import { AvatarPicker } from "@/components/avatar-picker";
 import { completeOnboarding } from "@/app/(app)/onboarding/actions";
 
 type UsernameStatusKind =
@@ -27,11 +26,8 @@ export function OnboardingForm({ userId }: { userId: string }) {
     username: string;
     available: boolean;
   } | null>(null);
-  const [uploading, setUploading] = useState(false);
-  const [uploadError, setUploadError] = useState<string | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const validShape = username !== "" && USERNAME_REGEX.test(username);
 
@@ -77,45 +73,8 @@ export function OnboardingForm({ userId }: { userId: string }) {
     };
   }, [username, validShape]);
 
-  async function handleFile(file: File) {
-    setUploadError(null);
-    if (!["image/png", "image/jpeg", "image/webp"].includes(file.type)) {
-      setUploadError("PNG, JPEG, or WEBP only");
-      return;
-    }
-    if (file.size > 2 * 1024 * 1024) {
-      setUploadError("Max 2 MB");
-      return;
-    }
-
-    setUploading(true);
-    try {
-      const supabase = createClient();
-      const ext =
-        file.type === "image/png"
-          ? "png"
-          : file.type === "image/webp"
-            ? "webp"
-            : "jpg";
-      const path = `${userId}/avatar.${ext}`;
-      const { error } = await supabase.storage
-        .from("avatars")
-        .upload(path, file, { upsert: true, contentType: file.type });
-      if (error) {
-        setUploadError(error.message);
-        return;
-      }
-      const { data } = supabase.storage.from("avatars").getPublicUrl(path);
-      // Cache-bust on each upload so the new image shows immediately.
-      setAvatarUrl(`${data.publicUrl}?v=${Date.now()}`);
-    } finally {
-      setUploading(false);
-    }
-  }
-
   const canSubmit =
     !isPending &&
-    !uploading &&
     firstName.trim().length > 0 &&
     lastName.trim().length > 0 &&
     EMAIL_REGEX.test(email) &&
@@ -169,60 +128,7 @@ export function OnboardingForm({ userId }: { userId: string }) {
         <p className="text-xs font-medium text-zinc-500 uppercase tracking-wider">
           Avatar
         </p>
-        <div className="flex items-center gap-4">
-          <div className="w-16 h-16 rounded-full overflow-hidden border border-zinc-800 shrink-0">
-            <Image
-              src={avatarUrl}
-              alt="Selected avatar"
-              width={64}
-              height={64}
-              unoptimized
-            />
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {[DEFAULT_AVATAR, ...AVATAR_PRESETS].map((p) => {
-              const selected = avatarUrl === p;
-              return (
-                <button
-                  type="button"
-                  key={p}
-                  onClick={() => setAvatarUrl(p)}
-                  className={
-                    "w-10 h-10 rounded-full overflow-hidden border transition-colors " +
-                    (selected
-                      ? "border-emerald-500"
-                      : "border-zinc-800 hover:border-zinc-600")
-                  }
-                  aria-label={`Pick avatar ${p}`}
-                >
-                  <Image src={p} alt="" width={40} height={40} unoptimized />
-                </button>
-              );
-            })}
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={uploading}
-              className="text-xs px-3 h-10 rounded-full border border-zinc-800 hover:border-zinc-600 text-zinc-300 disabled:opacity-50"
-            >
-              {uploading ? "Uploading…" : "Upload"}
-            </button>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/png,image/jpeg,image/webp"
-              className="hidden"
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (file) handleFile(file);
-                e.target.value = "";
-              }}
-            />
-          </div>
-        </div>
-        {uploadError && (
-          <p className="text-xs text-red-400">{uploadError}</p>
-        )}
+        <AvatarPicker userId={userId} value={avatarUrl} onChange={setAvatarUrl} />
       </section>
 
       <section className="grid grid-cols-2 gap-3">

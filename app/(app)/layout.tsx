@@ -1,7 +1,9 @@
+import Image from "next/image";
 import Link from "next/link";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/repository/users";
+import { resolveAvatarUrl } from "@/lib/avatars";
 import { signOut } from "./actions";
 
 export default async function AppLayout({
@@ -45,15 +47,25 @@ export default async function AppLayout({
             </>
           )}
           <div className="ml-auto flex items-center gap-4">
-            {user && !onOnboarding && (
+            {user && !onOnboarding && user.username && (
               <Link
-                href={`/profile/${user.id}`}
-                className="text-zinc-500 hover:text-zinc-200 transition-colors tabular-nums"
+                href={`/profile/${user.username}`}
+                className="flex items-center gap-2 text-zinc-500 hover:text-zinc-200 transition-colors tabular-nums"
               >
+                <Image
+                  src={resolveAvatarUrl(user.avatarUrl)}
+                  alt=""
+                  width={24}
+                  height={24}
+                  unoptimized
+                  className="rounded-full border border-zinc-800"
+                />
                 <span className="hidden sm:inline">
-                  {user.username ?? "(setting up)"}
+                  {[user.firstName, user.lastName]
+                    .filter(Boolean)
+                    .join(" ") || user.username}
                 </span>
-                <span className="text-zinc-700 mx-2 hidden sm:inline">·</span>
+                <span className="text-zinc-700 mx-1 hidden sm:inline">·</span>
                 <span className="text-zinc-300">
                   {user.rating.toLocaleString("en-IN")}
                 </span>

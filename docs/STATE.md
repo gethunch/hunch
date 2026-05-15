@@ -27,8 +27,16 @@ _Last updated: 2026-05-15_
 - Repo is **public** (was private; Vercel hobby tier requires Pro for private org repos, so we flipped — no secrets in git)
 
 ## In progress
-- **Phases 7–9 (onboarding + richer profile)**: in flight. Plan in `/home/rishisethia258/.claude/plans/streamed-snacking-octopus.md`.
-- Phases 7 + 8 shipped. Phase 9 (profile rewrite) next.
+- **Phases 7–9 (onboarding + richer profile)**: shipped. Plan in `/home/rishisethia258/.claude/plans/streamed-snacking-octopus.md`.
+
+## Built (Phase 9)
+- `lib/repository/users.ts` `getUserByUsername(username)` — case-insensitive lookup.
+- `app/(app)/profile/[username]/` (replaces `[id]`) — full profile page with avatar (large), "First Last", `@username`, rating, contests, edit panel for own profile.
+- `app/(app)/profile/[username]/actions.ts` — `updateName`, `updateEmail` (re-checks uniqueness, kicks fresh confirmation), `updateAvatar` (validates preset or own-storage URL), `resendEmailVerification`.
+- `components/profile-editor.tsx` — three inline-edit sections (name, email with verify-status banner + resend, avatar with auto-save on pick).
+- `components/avatar-picker.tsx` — extracted from onboarding so the profile editor + onboarding share one picker.
+- Nav (`(app)/layout.tsx`): now shows avatar + "First Last", links to `/profile/<username>`.
+- Leaderboard: now shows avatar + "First Last" + `@username`, links by username.
 
 ## Built (Phase 8)
 - 8 preset avatar SVGs + 1 default in `/public/avatars/`.

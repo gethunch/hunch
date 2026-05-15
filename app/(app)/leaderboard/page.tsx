@@ -1,6 +1,8 @@
+import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentUser, getTopUsers } from "@/lib/repository/users";
+import { resolveAvatarUrl } from "@/lib/avatars";
 
 export default async function LeaderboardPage() {
   const me = await getCurrentUser();
@@ -28,26 +30,44 @@ export default async function LeaderboardPage() {
         <ol className="border border-zinc-900 rounded-lg divide-y divide-zinc-900">
           {top.map((u, i) => {
             const isMe = u.id === me.id;
+            const fullName =
+              [u.firstName, u.lastName].filter(Boolean).join(" ").trim() ||
+              u.username ||
+              "Player";
+            const href = u.username ? `/profile/${u.username}` : "#";
             return (
               <li key={u.id}>
                 <Link
-                  href={`/profile/${u.id}`}
+                  href={href}
                   className={
-                    "flex items-baseline gap-4 px-4 py-3 transition-colors " +
-                    (isMe
-                      ? "bg-zinc-900/50"
-                      : "hover:bg-zinc-950")
+                    "flex items-center gap-4 px-4 py-3 transition-colors " +
+                    (isMe ? "bg-zinc-900/50" : "hover:bg-zinc-950")
                   }
                 >
-                  <span className="text-sm tabular-nums text-zinc-500 w-8">
+                  <span className="text-sm tabular-nums text-zinc-500 w-6">
                     {i + 1}
                   </span>
-                  <span className="flex-1 truncate">
-                    {u.username ?? "(setting up)"}
-                    {isMe && (
-                      <span className="text-xs text-zinc-600 ml-2">you</span>
+                  <Image
+                    src={resolveAvatarUrl(u.avatarUrl)}
+                    alt=""
+                    width={28}
+                    height={28}
+                    unoptimized
+                    className="rounded-full border border-zinc-800 shrink-0"
+                  />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm truncate">
+                      {fullName}
+                      {isMe && (
+                        <span className="text-xs text-zinc-600 ml-2">you</span>
+                      )}
+                    </p>
+                    {u.username && (
+                      <p className="text-xs text-zinc-600 truncate">
+                        @{u.username}
+                      </p>
                     )}
-                  </span>
+                  </div>
                   <span className="text-sm tabular-nums text-zinc-200">
                     {u.rating.toLocaleString("en-IN")}
                   </span>

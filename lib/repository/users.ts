@@ -1,5 +1,5 @@
 import { cache } from "react";
-import { desc, eq, gt, inArray } from "drizzle-orm";
+import { desc, eq, gt, inArray, sql } from "drizzle-orm";
 import { db } from "@/lib/db";
 import {
   contests,
@@ -40,6 +40,17 @@ export const getCurrentUser = cache(async (): Promise<AppUser | null> => {
 
 export async function getUserById(id: string): Promise<AppUser | null> {
   const rows = await db.select().from(users).where(eq(users.id, id)).limit(1);
+  return rows[0] ?? null;
+}
+
+export async function getUserByUsername(
+  username: string,
+): Promise<AppUser | null> {
+  const rows = await db
+    .select()
+    .from(users)
+    .where(sql`lower(${users.username}) = lower(${username})`)
+    .limit(1);
   return rows[0] ?? null;
 }
 

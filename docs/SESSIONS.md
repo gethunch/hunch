@@ -204,3 +204,24 @@ Now extending Hunch with a proper signup-completion step. Plan at `/home/rishise
 
 **Bundling gotcha caught:**
 - First pass exported `USERNAME_REGEX` from `app/api/username-available/route.ts`. That route imports the DB module (server-only); importing the regex from a client component would have pulled the server graph into the client bundle. Moved both regexes to `lib/identity.ts`.
+
+---
+
+### Continued: Phase 9 shipped (profile rewrite for new fields)
+**Shipped:**
+- Renamed `app/(app)/profile/[id]/` → `app/(app)/profile/[username]/`. Resolves via new `getUserByUsername` (case-insensitive via `lower()`); 404 if missing.
+- New profile page header: avatar (80px) + "First Last" + `@username` + rating + contests played.
+- `components/profile-editor.tsx`: three inline-edit sections (name, email with verified/pending banner + resend button, avatar with auto-save).
+- `components/avatar-picker.tsx` extracted from onboarding-form. Reused in both places.
+- `app/(app)/profile/[username]/actions.ts`: `updateName`, `updateEmail` (changes blank `emailVerifiedAt` and re-kicks Supabase confirmation), `updateAvatar` (validates preset OR own-storage URL), `resendEmailVerification`. Race-safe via catch on unique index.
+- Nav header now shows avatar + "First Last" linking by username.
+- Leaderboard now shows avatar + "First Last" + `@username`, links by username.
+
+**Verified (curl + dev server):**
+- `/profile/test_elite` route compiles + renders (307→login when unauthed) ✓
+- `/profile/nonexistent_user` → 307→login when unauthed; would 404 once authed (notFound() in page) ✓
+- TS / lint / Vitest all clean.
+
+**Notes:**
+- Old `/profile/[uuid]` URLs now 404. Acceptable — not shared publicly yet.
+- `app/(app)/profile/[id]/page.tsx` was deleted; the page move + edits live in one Phase 9 commit.
