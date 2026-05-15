@@ -73,3 +73,18 @@ Going forward: edit `lib/db/schema.ts` → `npm run db:generate` (creates a migr
 Drizzle should never touch Supabase-owned schemas (`auth`, `storage`, `realtime`, `pgsodium`, etc.).
 
 **Why:** Hygiene. Avoids accidentally diffing or modifying anything Supabase manages, and reduces drizzle-kit's introspection surface area.
+
+## 2026-05-15 — Cron timeout: 60s set, hobby tier caps at 10s
+Both cron routes set `export const maxDuration = 60`. On Vercel's hobby tier this is capped at 10s anyway; the value is forward-looking for Pro.
+
+**Why:** The open-contest cron fetches 50 prices (~3–5s on Yahoo) plus DB writes. Should fit in 10s for small N. The resolve-contest cron does the same plus per-entry work. For N < ~50 entries, fits in 10s. If a contest grows beyond that, either bump to Pro or refactor the cron to fan out via background jobs. **Not solving until we hit it.**
+
+## 2026-05-15 — Sign-out: server action, no separate route
+`signOut()` in `app/(app)/actions.ts` calls `supabase.auth.signOut()` and redirects to `/`. Wired into the nav via a tiny form.
+
+**Why:** No need for a dedicated `/sign-out` route or page when a server action handles it inline. One less file.
+
+## 2026-05-15 — Display-name validation: client + server, server is source of truth
+Client editor disables Save until the trimmed value is ≥ 2 chars and changed. Server action re-validates length, charset, and uniqueness with a try/catch on the unique index to handle races.
+
+**Why:** Client check is for UX (don't bother the server with obvious invalid inputs); server check is for correctness. Trusting only client validation is a known antipattern.

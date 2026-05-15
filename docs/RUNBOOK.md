@@ -64,21 +64,35 @@ _Drizzle and Vitest scripts will be added when those tools land (W1 / W3)._
 
 ## Cron
 
-Both cron endpoints require `Authorization: Bearer ${CRON_SECRET}`.
+Both cron endpoints require `Authorization: Bearer ${CRON_SECRET}`. Vercel attaches this header automatically to scheduled cron requests when `CRON_SECRET` is set as an env var.
+
+### Schedule (`vercel.json`)
+- `open-contest`: Monday 09:15 IST = `45 3 * * 1` UTC
+- `resolve-contest`: Friday 15:35 IST = `5 10 * * 5` UTC
 
 ### Trigger manually (smoke test)
 ```bash
-curl -X POST https://<deployment-url>/api/cron/open-contest \
-  -H "Authorization: Bearer $CRON_SECRET"
+curl -H "Authorization: Bearer $CRON_SECRET" \
+  https://hunch-seven.vercel.app/api/cron/open-contest
 
-curl -X POST https://<deployment-url>/api/cron/resolve-contest \
-  -H "Authorization: Bearer $CRON_SECRET"
+curl -H "Authorization: Bearer $CRON_SECRET" \
+  https://hunch-seven.vercel.app/api/cron/resolve-contest
 ```
 
-### Schedule (Vercel)
-Set in `vercel.json` (added in W6):
-- `open-contest`: Monday 09:15 IST = `45 3 * * 1` UTC
-- `resolve-contest`: Friday 15:35 IST = `5 10 * * 5` UTC
+Or locally:
+```bash
+CRON_SECRET=$(grep '^CRON_SECRET=' .env.local | cut -d= -f2-)
+curl -H "Authorization: Bearer $CRON_SECRET" http://localhost:3000/api/cron/open-contest
+```
+
+### Check that a scheduled cron fired
+Vercel dashboard → Project → **Logs** → filter by path `/api/cron/...`. Successful runs return `{"ok": true, ...}` JSON. Failed runs surface the stack trace.
+
+### Seed a test contest for local cron testing
+```bash
+npm run seed:test-contest  # inserts backdated contest with 5 synthetic users
+```
+Cleanup SQL is at the top of `scripts/seed-test-contest.ts`.
 
 ---
 

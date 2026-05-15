@@ -132,3 +132,24 @@ Append-only. One entry per session.
 **Notes:**
 - Real user won't appear on leaderboard until first contest resolves (`contests_played > 0` filter). By design — leaderboard = proven players.
 - Profile's "Start at 1500" synthetic point lets the chart be useful even with 1 resolved contest.
+
+---
+
+### Continued: Phase 5 + Phase 6 shipped same session
+**Phase 5 (polish):**
+- Countdown timer client component on `/contest` ticks once per second, falls back to "Submissions closed" when lock time passes.
+- Sign-out: tiny server action, hooked into the nav header.
+- Display-name editing on own profile: inline editor + server-action validation (length 2..32, unicode-aware charset, case-sensitive uniqueness, race-safe catch on the index).
+
+**Phase 6 (cron schedules + launch readiness):**
+- `vercel.json` with both crons — open-contest Mon 03:45 UTC, resolve-contest Fri 10:05 UTC. Vercel auto-attaches `Authorization: Bearer ${CRON_SECRET}` to outgoing requests, which our existing endpoint check accepts.
+- `docs/LAUNCH.md` checklist consolidating remaining pre-launch work (the SMS provider decision, NIFTY 50 list freshness, observability, custom domain).
+- `RUNBOOK.md` updated with cron operations.
+- `DECISIONS.md` extended for the hobby-tier 10s timeout caveat, sign-out approach, display-name validation pattern.
+
+**All 6 phases — DONE.** Project is shippable. Real-user launch gated on the items in `LAUNCH.md` (mainly the SMS provider).
+
+**What remains is product/business, not engineering:**
+- Pick a real SMS provider, do DLT
+- Pick a brand/domain
+- Decide on the public announcement

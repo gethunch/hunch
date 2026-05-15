@@ -27,7 +27,7 @@ _Last updated: 2026-05-15_
 - Repo is **public** (was private; Vercel hobby tier requires Pro for private org repos, so we flipped — no secrets in git)
 
 ## In progress
-- **Phases 1, 2, 3, 4 — all done.** Polish + launch remain.
+- **All 6 phases shipped.** Now in launch-readiness mode; see `/docs/LAUNCH.md` for the checklist.
 
 ## Built (latest additions)
 - `lib/constants.ts`: NIFTY 50 list (with display names), `weekly_pick_5` format constant, IST date helpers, `nextContestMondayIST`, `contestTimestampsForMonday`.
@@ -48,18 +48,19 @@ _Last updated: 2026-05-15_
 - 5 env vars set in Vercel
 - Auth + contest entry + rating engine + crons all live in prod (crons not yet on a Vercel schedule — that's Phase 6)
 
-## Next (Phase 5: Polish)
-1. Countdown timer on `/contest` ("Picks lock in 2d 14h 03m") — client component, ticks every second
-2. Tighten empty states (leaderboard < 3 players, profile with 0 contests already done in Phase 4 but worth a once-over)
-3. Aesthetic pass: spacing, type scale, focus states, mobile breakpoints
-4. Probably: display-name editing on profile (currently stuck with `player-xxxxxxxx`)
-5. Favicon + OG image
+## Built (Phase 5 + 6)
+- Countdown timer on `/contest` (`components/contest-countdown.tsx`) ticking every 1s
+- Sign-out via server action + nav button
+- Editable display name on own profile, with server-side length/charset/uniqueness validation
+- `vercel.json` with both cron schedules
+- `docs/LAUNCH.md` checklist
 
-## Then Phase 6: Cron wiring + launch
-- `vercel.json` with the two cron schedules (Mon 03:45 UTC, Fri 10:05 UTC)
-- Real SMS provider for Supabase phone auth (Twilio or MSG91 + DLT registration)
-- One full automated cycle end-to-end as dogfood
-- Custom domain if/when
+## Next — launch
+Everything in `/docs/LAUNCH.md`. Highlights:
+1. Wait for the first real Monday cron cycle (03:45 UTC) and verify logs
+2. Wire a real SMS provider for Supabase phone OTP (Twilio + DLT, or MSG91 hook)
+3. Custom domain
+4. Dogfood weekly cycles before opening to real users
 
 ## Open questions / deferred
 - Real SMS provider for production phone OTP → Phase 6
