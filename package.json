@@ -10,7 +10,9 @@
     "db:push": "dotenv -e .env.local -- drizzle-kit push",
     "db:generate": "dotenv -e .env.local -- drizzle-kit generate",
     "db:studio": "dotenv -e .env.local -- drizzle-kit studio",
-    "seed:contest": "dotenv -e .env.local -- tsx scripts/seed-contest.ts"
+    "seed:contest": "dotenv -e .env.local -- tsx scripts/seed-contest.ts",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@supabase/ssr": "^0.10.3",
@@ -32,6 +34,7 @@
     "eslint-config-next": "16.2.6",
     "tailwindcss": "^4",
     "tsx": "^4.22.0",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^4.1.6"
   }
 }
