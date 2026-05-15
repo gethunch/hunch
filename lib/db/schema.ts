@@ -57,7 +57,11 @@ export const entries = pgTable(
     submittedAt: timestamp("submitted_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
-    finalReturn: numeric("final_return", { precision: 8, scale: 4 }),
+    finalReturn: numeric("final_return", {
+      precision: 8,
+      scale: 4,
+      mode: "number",
+    }),
     finalRank: integer("final_rank"),
     ratingDelta: integer("rating_delta"),
   },
@@ -74,8 +78,16 @@ export const entryPicks = pgTable(
       .notNull()
       .references(() => entries.id, { onDelete: "cascade" }),
     symbol: text("symbol").notNull(),
-    entryPrice: numeric("entry_price", { precision: 10, scale: 2 }),
-    exitPrice: numeric("exit_price", { precision: 10, scale: 2 }),
+    entryPrice: numeric("entry_price", {
+      precision: 10,
+      scale: 2,
+      mode: "number",
+    }),
+    exitPrice: numeric("exit_price", {
+      precision: 10,
+      scale: 2,
+      mode: "number",
+    }),
   },
   (t) => [
     uniqueIndex("entry_picks_entry_symbol_unique").on(t.entryId, t.symbol),
