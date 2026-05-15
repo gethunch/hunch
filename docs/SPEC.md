@@ -17,7 +17,7 @@ Weekly skill-rated stock-prediction contest on NIFTY 50. Users pick 5 stocks eac
 ## Data model (5 tables)
 See `/CLAUDE.md` for full column definitions. Summary:
 
-- **users** — Supabase auth id mirror, phone, display_name, rating (default 1500), contests_played.
+- **users** — Supabase auth id mirror, phone (unique), first_name, last_name, email (unique on `lower(email)`), username (unique on `lower(username)`, immutable post-onboarding), avatar_url, email_verified_at, onboarded (default false), rating (default 1500), contests_played.
 - **contests** — format (v1: `weekly_pick_5`), period_start (Monday IST for weekly), opens_at, locks_at, resolves_at, status (`open`|`live`|`resolved`), entry_count. `unique(format, period_start)`.
 - **entries** — (contest_id, user_id) unique. Final return, rank, rating_delta populated at resolution.
 - **entry_picks** — 5 rows per entry (`unique(entry_id, symbol)`). Entry/exit prices.
@@ -48,7 +48,8 @@ Test coverage required (Vitest):
 ## Auth
 - Supabase phone OTP, `@supabase/ssr` clients (server + browser).
 - Middleware protects `/app/(app)/*`.
-- First authed request: server action looks up `users` by Supabase auth id; if missing, inserts row with `rating=1500`, `contests_played=0`.
+- First authed request: server action looks up `users` by Supabase auth id; if missing, inserts row with `rating=1500`, `contests_played=0`, `onboarded=false`.
+- Not-onboarded users are funneled to `/onboarding` by `app/(app)/layout.tsx`, where they pick first/last name, email (verified async via Supabase confirmation link), username (immutable, unique case-insensitive), avatar. `completeOnboarding` server action persists and flips `onboarded=true`.
 - Service role key: server only. Never imported in client components.
 
 ## Cron jobs

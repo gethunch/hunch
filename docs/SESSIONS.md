@@ -153,3 +153,27 @@ Append-only. One entry per session.
 - Pick a real SMS provider, do DLT
 - Pick a brand/domain
 - Decide on the public announcement
+
+---
+
+### Continued: Phase 7 shipped (onboarding schema + gate)
+Now extending Hunch with a proper signup-completion step. Plan at `/home/rishisethia258/.claude/plans/streamed-snacking-octopus.md`. Decisions taken with the user (recorded in `DECISIONS.md`):
+- Drop `display_name`; use immutable `username` + `first_name`/`last_name`.
+- Switch profile URLs to `/profile/[username]` (Phase 9).
+- Defer phone-change UI to a later phase.
+- Email verified via Supabase's built-in confirmation-link flow.
+- Username + email use `lower()` functional unique indices.
+- Avatar = ~8 SVG presets + Supabase Storage upload + a default fallback (Phase 8).
+
+**Phase 7 shipped:**
+- Schema + migration `0001_onboarding_fields.sql` applied to dev DB.
+- `getCurrentUser` no longer auto-stamps a `player-XXX` display name; row goes in with `onboarded=false`.
+- `(app)/layout.tsx` enforces the not-onboarded → `/onboarding` redirect; `onboarded && pathname=/onboarding` → `/contest`. Pathname read from `x-pathname` header set in `lib/supabase/proxy.ts`.
+- Stub `/onboarding` page in place.
+- All `displayName` references purged; obsolete `ProfileNameEditor` + `updateDisplayName` action deleted.
+- 5 synthetic test users backfilled (`onboarded=true`, usernames `test_balanced` etc.).
+- TS/lint/Vitest clean. Unauthed `/onboarding` → `/login?next=/onboarding`; unauthed `/contest` → `/login?next=/contest`.
+
+**Notes:**
+- `drizzle-kit generate` requires a TTY for rename conflict resolution; hand-rolled the migration SQL. `_meta/_journal.json` left untouched — DECISIONS.md already says we hand-roll migrations.
+- Dogfood user (Supabase test phone +91999990 0001) still has `onboarded=false`. Next login → `/onboarding` stub. Phase 8 will give them a form to fill in.

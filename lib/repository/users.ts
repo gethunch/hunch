@@ -26,16 +26,12 @@ export const getCurrentUser = cache(async (): Promise<AppUser | null> => {
     .limit(1);
   if (existing[0]) return existing[0];
 
-  // First-time sign-in — create the row.
-  // display_name is unique; uuid-prefix derivation collides at ~1 in 4 billion.
-  // Profile page will let users pick a real one (later).
-  const displayName = `player-${authUser.id.slice(0, 8)}`;
+  // First-time sign-in — stub row; the user completes their profile at /onboarding.
   const [created] = await db
     .insert(users)
     .values({
       id: authUser.id,
       phone: authUser.phone ?? "",
-      displayName,
     })
     .returning();
 

@@ -1,9 +1,18 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-const PROTECTED_PREFIXES = ["/contest", "/leaderboard", "/profile"];
+const PROTECTED_PREFIXES = [
+  "/contest",
+  "/leaderboard",
+  "/profile",
+  "/onboarding",
+];
 
 export async function updateSession(request: NextRequest) {
+  // Server components don't know the current pathname natively; mirror it on a
+  // request header so layouts/pages can read it via `next/headers`.
+  request.headers.set("x-pathname", request.nextUrl.pathname);
+
   let response = NextResponse.next({ request });
 
   const supabase = createServerClient(

@@ -88,3 +88,31 @@ Both cron routes set `export const maxDuration = 60`. On Vercel's hobby tier thi
 Client editor disables Save until the trimmed value is ≥ 2 chars and changed. Server action re-validates length, charset, and uniqueness with a try/catch on the unique index to handle races.
 
 **Why:** Client check is for UX (don't bother the server with obvious invalid inputs); server check is for correctness. Trusting only client validation is a known antipattern.
+
+## 2026-05-15 — Drop `display_name` in favour of `username` + `first_name`/`last_name`
+The earlier ad-hoc `display_name` field is removed. Users now have an immutable `username` (handle), plus editable `first_name` + `last_name`. Profile displays "First Last (@username)".
+
+**Why:** Real-name identity + a stable handle is the de facto standard for social/competitive products. `display_name` muddled the two roles. Username immutability avoids leaderboard impersonation by people swapping into someone else's handle.
+
+## 2026-05-15 — Username + email uniqueness via `lower()` functional unique indices
+Both `username` and `email` are unique case-insensitively, enforced by `CREATE UNIQUE INDEX … (lower(col))`. Values stored case-preserved for display.
+
+**Why:** Prevents homoglyph-ish impersonation (`Anthropic` vs `anthropic`) and the standard "is `Foo@x.com` already taken if I sign up with `foo@x.com`?" footgun. Functional indices are postgres-native and don't require the `citext` extension.
+
+## 2026-05-15 — Onboarded gate lives in the `(app)` layout, not in `proxy.ts`
+The not-onboarded redirect runs inside `app/(app)/layout.tsx` (which already calls `getCurrentUser`), reading the current pathname via an `x-pathname` request header set by `proxy.ts`.
+
+**Why:** The proxy runs at the edge and shouldn't open a DB connection per request. The `(app)` layout already does the user lookup we need; piggybacking on it costs nothing extra. The `x-pathname` header is needed because Next 16 server components don't expose the current pathname natively.
+
+## 2026-05-15 — Username format `^[a-zA-Z0-9_]{3,20}$`
+ASCII only, alphanumerics + underscore, 3–20 chars.
+
+**Why:** Trades flexibility for safety against homoglyph attacks and URL-encoding edge cases. Matches the de facto conventions of GitHub, Twitter, Discord. Documented; can relax later if real users complain.
+
+## 2026-05-15 — Email verification via Supabase's built-in confirmation link
+`auth.updateUser({ email })` sends Supabase's confirmation email; user clicks the link, callback at `/auth/confirm-email` flips `users.email_verified_at`. Onboarding can complete with email unverified — verification status surfaces on the profile.
+
+**Why:** Free and supported out of the box; rolling our own would require picking an SMTP provider (Resend, Mailgun, etc.) and is not blocking v1. Email template can be customised later in Supabase Studio.
+
+## 2026-05-15 — Phone change UI deferred
+v1 enforces phone uniqueness at signup, but the profile shows phone as read-only. Changing phone requires OTP-to-new-number + Supabase auth sync + `users.phone` update — non-trivial, low-frequency, and not needed for launch.

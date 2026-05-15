@@ -1,4 +1,6 @@
+import { sql } from "drizzle-orm";
 import {
+  boolean,
   date,
   integer,
   numeric,
@@ -16,16 +18,29 @@ export const contestStatus = pgEnum("contest_status", [
   "resolved",
 ]);
 
-export const users = pgTable("users", {
-  id: uuid("id").primaryKey(),
-  phone: text("phone").notNull().unique(),
-  displayName: text("display_name").notNull().unique(),
-  rating: integer("rating").notNull().default(1500),
-  contestsPlayed: integer("contests_played").notNull().default(0),
-  createdAt: timestamp("created_at", { withTimezone: true })
-    .notNull()
-    .defaultNow(),
-});
+export const users = pgTable(
+  "users",
+  {
+    id: uuid("id").primaryKey(),
+    phone: text("phone").notNull().unique(),
+    firstName: text("first_name"),
+    lastName: text("last_name"),
+    email: text("email"),
+    username: text("username"),
+    avatarUrl: text("avatar_url"),
+    emailVerifiedAt: timestamp("email_verified_at", { withTimezone: true }),
+    onboarded: boolean("onboarded").notNull().default(false),
+    rating: integer("rating").notNull().default(1500),
+    contestsPlayed: integer("contests_played").notNull().default(0),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("users_username_lower_unique").on(sql`lower(${t.username})`),
+    uniqueIndex("users_email_lower_unique").on(sql`lower(${t.email})`),
+  ],
+);
 
 export const contests = pgTable(
   "contests",

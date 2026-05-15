@@ -27,7 +27,19 @@ _Last updated: 2026-05-15_
 - Repo is **public** (was private; Vercel hobby tier requires Pro for private org repos, so we flipped — no secrets in git)
 
 ## In progress
-- **All 6 phases shipped.** Now in launch-readiness mode; see `/docs/LAUNCH.md` for the checklist.
+- **Phases 7–9 (onboarding + richer profile)**: in flight. Plan in `/home/rishisethia258/.claude/plans/streamed-snacking-octopus.md`.
+- Phase 7 (schema + onboarded gate) shipped.
+
+## Built (Phase 7)
+- `users` table extended: `first_name`, `last_name`, `email`, `username`, `avatar_url`, `email_verified_at`, `onboarded` (default false). `display_name` dropped.
+- Functional `lower()` unique indices on `username` and `email` (`lib/db/schema.ts`).
+- Migration `lib/db/migrations/0001_onboarding_fields.sql` hand-written; applied via psql.
+- `lib/repository/users.ts` `getCurrentUser` insert no longer sets a fake display name; new users land with `onboarded=false`.
+- `lib/supabase/proxy.ts` sets an `x-pathname` request header (used by `(app)` layout).
+- `app/(app)/layout.tsx` runs the onboarded redirect gate: `!onboarded → /onboarding`, `onboarded && /onboarding → /contest`.
+- `app/(app)/onboarding/page.tsx`: stub destination, real form lands in Phase 8.
+- `displayName` references purged across `(app)/layout.tsx`, `leaderboard/page.tsx`, `profile/[id]/page.tsx`. `components/profile-name-editor.tsx` + `profile/[id]/actions.ts` deleted; will be replaced in Phase 9.
+- 5 synthetic test users backfilled with usernames + `onboarded=true` so leaderboard still reads cleanly.
 
 ## Built (latest additions)
 - `lib/constants.ts`: NIFTY 50 list (with display names), `weekly_pick_5` format constant, IST date helpers, `nextContestMondayIST`, `contestTimestampsForMonday`.

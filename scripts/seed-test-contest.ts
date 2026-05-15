@@ -23,11 +23,11 @@ const TEST_OPENS_AT = new Date("2026-05-11T09:15:00+05:30");
 const TEST_RESOLVES_AT = new Date("2026-05-15T15:30:00+05:30");
 
 const TEST_USERS = [
-  { phone: "+919999900010", displayName: "test-balanced", rating: 1500 },
-  { phone: "+919999900011", displayName: "test-strong", rating: 1700 },
-  { phone: "+919999900012", displayName: "test-weak", rating: 1300 },
-  { phone: "+919999900013", displayName: "test-elite", rating: 2200 },
-  { phone: "+919999900014", displayName: "test-rookie", rating: 900 },
+  { phone: "+919999900010", username: "test_balanced", rating: 1500 },
+  { phone: "+919999900011", username: "test_strong", rating: 1700 },
+  { phone: "+919999900012", username: "test_weak", rating: 1300 },
+  { phone: "+919999900013", username: "test_elite", rating: 2200 },
+  { phone: "+919999900014", username: "test_rookie", rating: 900 },
 ];
 
 const PICKS_PER_USER: string[][] = [
@@ -76,8 +76,11 @@ async function main() {
       .values({
         id: randomUUID(),
         phone: u.phone,
-        displayName: u.displayName,
+        username: u.username,
+        firstName: "Test",
+        lastName: u.username.replace(/^test_/, ""),
         rating: u.rating,
+        onboarded: true,
       })
       .returning();
     userIds.push(created.id);

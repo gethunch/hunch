@@ -43,7 +43,7 @@ export default async function LeaderboardPage() {
                     {i + 1}
                   </span>
                   <span className="flex-1 truncate">
-                    {u.displayName}
+                    {u.username ?? "(setting up)"}
                     {isMe && (
                       <span className="text-xs text-zinc-600 ml-2">you</span>
                     )}
