@@ -69,5 +69,12 @@ Append-only. One entry per session.
 - GET /api/me (no session) → 401
 - TS strict: clean. ESLint: clean.
 
-**Blocked on:**
-- Browser smoke test of the OTP round-trip (test number `+919999900001` / OTP `123456`).
+**Verified end-to-end (browser):**
+- Phone OTP round-trip with `+919999900001` / `123456` → lands on `/contest` showing display name and rating 1,500.
+- Supabase test-OTP gotcha: test phone entries must be stored **without** the `+` prefix (Supabase strips it internally before matching). E.g., `919999900001=123456`, not `+919999900001=123456`.
+
+**Dev environment note:**
+- Running inside Google Cloud Shell. Next.js blocks cross-origin HMR/dev resources by default, which broke client-side hydration and made the form non-interactive. Fixed by adding the exact Cloud Shell preview hostname to `allowedDevOrigins` in `next.config.ts`. Wildcards (`*.cloudshell.dev`) don't match Cloud Shell's two-level subdomain. **If the Cloud Shell session ID changes, update `next.config.ts`.**
+
+**Next:**
+- Phase 1 final step: Vercel deploy. Same env vars, repo import, smoke-test the prod URL.
