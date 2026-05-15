@@ -46,3 +46,28 @@ Append-only. One entry per session.
 
 **Blocked on:**
 - Test phone + OTP pair to smoke-test sign-in. Once that lands, auth UI + middleware + `/api/me`.
+
+---
+
+### Continued: auth flow shipped (server side)
+**Shipped (continued):**
+- Installed `@supabase/ssr` 0.10 + `@supabase/supabase-js` 2.105.
+- Supabase clients: `lib/supabase/{server,browser,proxy}.ts`.
+- Next.js 16 proxy (was middleware in earlier versions — file convention renamed). `proxy.ts` at root refreshes session cookies on every request, redirects unauthenticated visits to `/contest`/`/leaderboard`/`/profile` to `/login?next=<path>`, and bounces authed users away from `/login` to `/contest`.
+- `app/login/page.tsx` + `components/login-form.tsx` — two-step phone OTP form.
+- `app/login/actions.ts` — `sendOtp` / `verifyOtp` server actions hitting Supabase Auth, typed with a discriminated `ActionResult` union for clean error handling on the client.
+- `lib/repository/users.ts` — `getCurrentUser` (React-cached) does the "auth user → DB row, create on first call" flow per spec.
+- `app/api/me/route.ts` — minimal endpoint; 401 if no session, otherwise the DB row.
+- `app/(app)/contest/page.tsx` — minimal authed placeholder showing display name + rating.
+- `app/page.tsx` — replaced the Next.js scaffold landing with a minimal Hunch wordmark + Sign in CTA.
+- `app/layout.tsx` + `app/globals.css` — title set to "Hunch", forced dark theme, tabular-nums on by default.
+
+**Verified (server-side):**
+- GET / → 200
+- GET /login → 200
+- GET /contest (no session) → 307 to /login?next=/contest
+- GET /api/me (no session) → 401
+- TS strict: clean. ESLint: clean.
+
+**Blocked on:**
+- Browser smoke test of the OTP round-trip (test number `+919999900001` / OTP `123456`).
