@@ -3,7 +3,7 @@
 import { useEffect, useState, useTransition } from "react";
 import { EMAIL_REGEX, USERNAME_REGEX } from "@/lib/identity";
 import { AvatarPicker } from "@/components/avatar-picker";
-import { completeOnboarding } from "@/app/(app)/onboarding/actions";
+import { completeOnboarding } from "@/app/onboarding/actions";
 
 type UsernameStatusKind =
   | "idle"

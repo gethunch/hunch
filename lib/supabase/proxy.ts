@@ -9,10 +9,6 @@ const PROTECTED_PREFIXES = [
 ];
 
 export async function updateSession(request: NextRequest) {
-  // Server components don't know the current pathname natively; mirror it on a
-  // request header so layouts/pages can read it via `next/headers`.
-  request.headers.set("x-pathname", request.nextUrl.pathname);
-
   let response = NextResponse.next({ request });
 
   const supabase = createServerClient(
@@ -50,9 +46,28 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  if (pathname === "/login" && user) {
+  // Onboarded gate. Source of truth is Supabase user_metadata.onboarded so
+  // we don't need a DB query in the proxy. completeOnboarding sets this flag
+  // alongside the DB write.
+  const onboarded = user?.user_metadata?.onboarded === true;
+
+  if (user && !onboarded && pathname !== "/onboarding" && requiresAuth) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/onboarding";
+    url.search = "";
+    return NextResponse.redirect(url);
+  }
+
+  if (user && onboarded && pathname === "/onboarding") {
     const url = request.nextUrl.clone();
     url.pathname = "/contest";
+    url.search = "";
+    return NextResponse.redirect(url);
+  }
+
+  if (pathname === "/login" && user) {
+    const url = request.nextUrl.clone();
+    url.pathname = onboarded ? "/contest" : "/onboarding";
     url.search = "";
     return NextResponse.redirect(url);
   }
