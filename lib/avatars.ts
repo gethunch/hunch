@@ -1,9 +1,12 @@
 // Avatar source-of-truth — preset list + validators.
 //
 // avatar_url is either:
-//   - a preset path like "/avatars/preset-03.svg" or "/avatars/default.svg"
+//   - a preset path like "/avatars/preset-03.svg"
 //   - a Supabase Storage URL for the current user's avatar:
 //     "<SUPABASE_URL>/storage/v1/object/public/avatars/<user_id>/avatar.<ext>"
+//
+// A null avatar_url renders deterministically: hash(user_id) → one of the
+// 8 presets. Same user always sees the same fallback preset.
 
 export const AVATAR_PRESETS = [
   "/avatars/preset-01.svg",
@@ -16,9 +19,19 @@ export const AVATAR_PRESETS = [
   "/avatars/preset-08.svg",
 ] as const;
 
-export const DEFAULT_AVATAR = "/avatars/default.svg";
+function hashToPresetIndex(seed: string): number {
+  let h = 0;
+  for (let i = 0; i < seed.length; i++) {
+    h = (h * 31 + seed.charCodeAt(i)) >>> 0;
+  }
+  return h % AVATAR_PRESETS.length;
+}
 
-const PRESET_SET = new Set<string>([DEFAULT_AVATAR, ...AVATAR_PRESETS]);
+export function fallbackPresetForUser(userId: string): string {
+  return AVATAR_PRESETS[hashToPresetIndex(userId)];
+}
+
+const PRESET_SET = new Set<string>(AVATAR_PRESETS);
 
 export function isPresetAvatar(url: string): boolean {
   return PRESET_SET.has(url);
@@ -38,6 +51,9 @@ export function isValidAvatarForUser(url: string, userId: string): boolean {
   return isPresetAvatar(url) || isOwnStorageAvatar(url, userId);
 }
 
-export function resolveAvatarUrl(url: string | null | undefined): string {
-  return url ?? DEFAULT_AVATAR;
+export function resolveAvatarUrl(
+  url: string | null | undefined,
+  userId: string,
+): string {
+  return url ?? fallbackPresetForUser(userId);
 }

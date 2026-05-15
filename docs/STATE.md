@@ -27,7 +27,15 @@ _Last updated: 2026-05-15_
 - Repo is **public** (was private; Vercel hobby tier requires Pro for private org repos, so we flipped — no secrets in git)
 
 ## In progress
-- **Phases 7–9 (onboarding + richer profile)**: shipped. Plan in `/home/rishisethia258/.claude/plans/streamed-snacking-octopus.md`.
+- **Phases 7–10 (onboarding + richer profile + modal/tabs polish)**: shipped.
+- Plan in `/home/rishisethia258/.claude/plans/streamed-snacking-octopus.md` (covered Phases 7–9). Phase 10 followed directly from in-chat feedback.
+
+## Built (Phase 10)
+- `components/avatar-picker.tsx` rewritten as a modal trigger: clickable preview + "Change/Pick" button → opens a dark-themed dialog with the 8 presets + "Upload your own" + close (ESC + backdrop click). Auto-saves on selection.
+- Default avatar removed: `public/avatars/default.svg` deleted, `DEFAULT_AVATAR` constant gone, picker no longer renders it.
+- `lib/avatars.ts` `resolveAvatarUrl(url, userId)` falls back deterministically: `null` → `AVATAR_PRESETS[hash(userId) % 8]`. Nav + leaderboard + profile header all use this, so no row ever renders gray.
+- Onboarding requires an avatar pick — submit disabled until one is chosen; "Required." hint when empty.
+- `components/profile-tabs.tsx` introduces 3 tabs on the profile page: **History** (rating chart), **Entries** (recent submissions), **Edit profile** (own only — settings panel). The header (avatar/name/handle/rating) stays above the tabs as a sticky identity strip.
 
 ## Built (Phase 9)
 - `lib/repository/users.ts` `getUserByUsername(username)` — case-insensitive lookup.

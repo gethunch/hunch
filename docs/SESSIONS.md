@@ -225,3 +225,27 @@ Now extending Hunch with a proper signup-completion step. Plan at `/home/rishise
 **Notes:**
 - Old `/profile/[uuid]` URLs now 404. Acceptable — not shared publicly yet.
 - `app/(app)/profile/[id]/page.tsx` was deleted; the page move + edits live in one Phase 9 commit.
+
+---
+
+### Continued: Phase 10 shipped (avatar modal + onboarding required + profile tabs)
+**Feedback from user after Phase 9 testing:**
+- Avatar picker should be a modal popup, not an inline grid.
+- Drop the gray default avatar; force every user to pick a colored one at onboarding.
+- Split profile content into tabs (history, entries, edit profile).
+
+**Shipped:**
+- `components/avatar-picker.tsx` rewritten as a modal trigger. Click preview/Change button → dark dialog (ESC + backdrop close) with the 8 presets in a 4-column grid + "Upload your own". Auto-saves on click.
+- `lib/avatars.ts`: dropped `DEFAULT_AVATAR`; `resolveAvatarUrl(url, userId)` falls back via `AVATAR_PRESETS[hash(userId) % 8]`. Same user always gets the same fallback preset. Updated callers in nav, leaderboard, profile header.
+- Onboarding form: `avatarUrl` initial state is `null`; submit disabled until pick.
+- `components/profile-tabs.tsx`: three tabs on profile (History / Entries / Edit profile — last own-only). Header stays above as the identity strip.
+- `components/profile-editor.tsx`: drops `defaultAvatar` prop; `AvatarSection` passes the raw `string | null` to the picker (which handles the empty state internally).
+- Deleted `public/avatars/default.svg`.
+
+**Verified:**
+- TS / lint / Vitest clean.
+- `/onboarding`, `/profile/test_elite`, `/leaderboard` all compile and serve.
+- Rishi's row in DB: real first/last name + email + username `rs258` + avatar `/avatars/preset-07.svg` + `onboarded=true`.
+
+**Disk-full gotcha caught mid-build:**
+- `/home` filled to 100%. `.next/dev/cache` was 934MB. Cleared while dev server was running — Turbopack stopped serving. Killed dev, wiped `.next`, restarted clean. Lesson: don't yank Turbopack's cache out from under a running server; stop the server first.

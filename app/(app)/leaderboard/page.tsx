@@ -48,7 +48,7 @@ export default async function LeaderboardPage() {
                     {i + 1}
                   </span>
                   <Image
-                    src={resolveAvatarUrl(u.avatarUrl)}
+                    src={resolveAvatarUrl(u.avatarUrl, u.id)}
                     alt=""
                     width={28}
                     height={28}

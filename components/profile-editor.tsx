@@ -19,19 +19,10 @@ type EditorUser = {
   avatarUrl: string | null;
 };
 
-export function ProfileEditor({
-  user,
-  defaultAvatar,
-}: {
-  user: EditorUser;
-  defaultAvatar: string;
-}) {
+export function ProfileEditor({ user }: { user: EditorUser }) {
   return (
     <div className="space-y-8 border border-zinc-900 rounded-lg p-6">
-      <AvatarSection
-        userId={user.id}
-        initialUrl={user.avatarUrl ?? defaultAvatar}
-      />
+      <AvatarSection userId={user.id} initialUrl={user.avatarUrl} />
       <NameSection
         initialFirst={user.firstName ?? ""}
         initialLast={user.lastName ?? ""}
@@ -49,9 +40,9 @@ function AvatarSection({
   initialUrl,
 }: {
   userId: string;
-  initialUrl: string;
+  initialUrl: string | null;
 }) {
-  const [avatarUrl, setAvatarUrl] = useState(initialUrl);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(initialUrl);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const router = useRouter();

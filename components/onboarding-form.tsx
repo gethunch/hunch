@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState, useTransition } from "react";
-import { DEFAULT_AVATAR } from "@/lib/avatars";
 import { EMAIL_REGEX, USERNAME_REGEX } from "@/lib/identity";
 import { AvatarPicker } from "@/components/avatar-picker";
 import { completeOnboarding } from "@/app/(app)/onboarding/actions";
@@ -18,7 +17,7 @@ export function OnboardingForm({ userId }: { userId: string }) {
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
-  const [avatarUrl, setAvatarUrl] = useState<string>(DEFAULT_AVATAR);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   // The server result is only meaningful for the last-fetched username. Track
   // which input the result corresponds to so we can tell apart "still checking
   // the current input" vs. "we have a result for this exact input".
@@ -79,12 +78,13 @@ export function OnboardingForm({ userId }: { userId: string }) {
     lastName.trim().length > 0 &&
     EMAIL_REGEX.test(email) &&
     usernameStatus === "valid" &&
-    avatarUrl.length > 0;
+    avatarUrl !== null;
 
   function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (!canSubmit) return;
 
+    if (avatarUrl === null) return;
     const formData = new FormData(e.currentTarget);
     // The avatar URL lives in state, not in a real field — push it manually.
     formData.set("avatarUrl", avatarUrl);
@@ -128,7 +128,15 @@ export function OnboardingForm({ userId }: { userId: string }) {
         <p className="text-xs font-medium text-zinc-500 uppercase tracking-wider">
           Avatar
         </p>
-        <AvatarPicker userId={userId} value={avatarUrl} onChange={setAvatarUrl} />
+        <AvatarPicker
+          userId={userId}
+          value={avatarUrl}
+          onChange={setAvatarUrl}
+          emptyLabel="Pick"
+        />
+        {avatarUrl === null && (
+          <p className="text-xs text-zinc-600">Required.</p>
+        )}
       </section>
 
       <section className="grid grid-cols-2 gap-3">

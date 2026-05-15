@@ -53,7 +53,7 @@ export default async function AppLayout({
                 className="flex items-center gap-2 text-zinc-500 hover:text-zinc-200 transition-colors tabular-nums"
               >
                 <Image
-                  src={resolveAvatarUrl(user.avatarUrl)}
+                  src={resolveAvatarUrl(user.avatarUrl, user.id)}
                   alt=""
                   width={24}
                   height={24}
