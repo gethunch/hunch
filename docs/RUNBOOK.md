@@ -109,6 +109,14 @@ npm run db:studio      # open Drizzle Studio (web UI for inspecting DB)
 ```
 Behind the scenes these are `dotenv-cli` wrappers around `drizzle-kit` that load `.env.local`.
 
+For hand-written migrations (e.g. `0001_onboarding_fields.sql`, `0002_avatars_bucket.sql`), apply via psql:
+```bash
+set -a && source .env.local && set +a
+psql "$DATABASE_URL" -f lib/db/migrations/0001_onboarding_fields.sql
+psql "$DATABASE_URL" -f lib/db/migrations/0002_avatars_bucket.sql
+```
+`db:generate` requires a TTY for rename conflict resolution and is awkward in this environment — keep hand-rolled migrations as the default for non-trivial schema changes.
+
 ### Seed a contest manually
 A seed script lands in Phase 2. Until then, insert via SQL editor:
 ```sql
@@ -129,3 +137,35 @@ Sign in with the test number → enter the fixed OTP → session created. No rea
 
 ### Prod
 TBD — real SMS provider decision deferred to W6. Likely Twilio or MSG91 (custom Supabase SMS hook).
+
+---
+
+## Email verification (Supabase confirmation link)
+
+Onboarding fires `auth.updateUser({ email })`, which makes Supabase send a confirmation email. The link in that email redirects back to `/auth/confirm-email?code=...` on this app, which exchanges the code for a session and stamps `users.email_verified_at`.
+
+For this to work, the redirect URL must be on Supabase's allowlist:
+
+1. Supabase dashboard → **Authentication** → **URL Configuration**.
+2. **Site URL**: set to the production URL (e.g. `https://hunch-seven.vercel.app`).
+3. **Redirect URLs** (additional): add both of these:
+   - `http://localhost:3000/auth/confirm-email`
+   - `https://hunch-seven.vercel.app/auth/confirm-email`
+
+The email template (Authentication → Email Templates → "Change Email Address") uses the Supabase default. Customise later for branding.
+
+---
+
+## Avatar storage (Supabase Storage)
+
+A public `avatars` bucket holds user-uploaded profile pictures. RLS allows public read; writes are scoped to objects under `avatars/<user_id>/`.
+
+Setup is one-off — apply via `lib/db/migrations/0002_avatars_bucket.sql` (see "Run migrations" above). Idempotent: re-running drops + recreates policies.
+
+Inspect / debug:
+```sql
+select * from storage.buckets where id = 'avatars';
+select policyname, cmd, qual, with_check from pg_policies where tablename = 'objects' and policyname like '%avatar%';
+```
+
+Uploaded objects are listed in Supabase dashboard → Storage → `avatars` → `<user_id>/avatar.<ext>`.

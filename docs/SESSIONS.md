@@ -177,3 +177,30 @@ Now extending Hunch with a proper signup-completion step. Plan at `/home/rishise
 **Notes:**
 - `drizzle-kit generate` requires a TTY for rename conflict resolution; hand-rolled the migration SQL. `_meta/_journal.json` left untouched — DECISIONS.md already says we hand-roll migrations.
 - Dogfood user (Supabase test phone +91999990 0001) still has `onboarded=false`. Next login → `/onboarding` stub. Phase 8 will give them a form to fill in.
+
+---
+
+### Continued: Phase 8 shipped (onboarding form + avatar storage)
+**Shipped:**
+- 8 preset SVG avatars + a default in `/public/avatars/` (minimal geometric tiles on dark theme).
+- Supabase Storage `avatars` bucket with RLS (`0002_avatars_bucket.sql`): public read, owner-only write under `<user_id>/`.
+- `app/(app)/onboarding/page.tsx` + `components/onboarding-form.tsx`: real form with avatar picker (presets + upload), name/email/username, live username availability via debounced fetch to `/api/username-available`.
+- `app/(app)/onboarding/actions.ts` `completeOnboarding`: validates + race-safe uniqueness + flips `onboarded=true` + kicks off Supabase email-confirmation via `auth.updateUser({email})`.
+- `app/auth/confirm-email/route.ts`: callback that `exchangeCodeForSession`s and mirrors `email_confirmed_at` onto `users.email_verified_at`.
+- Shared `lib/identity.ts` (regex constants) + `lib/avatars.ts` (preset list + validators).
+- RUNBOOK updated with Supabase URL Configuration steps (need to add the two redirect URLs in Supabase Studio for the email-confirmation link to land back here).
+
+**Verified (curl):**
+- `/api/username-available?u=test_balanced` → `{valid:true, available:false}` ✓
+- `/api/username-available?u=brand_new_user` → `{valid:true, available:true}` ✓
+- `/api/username-available?u=ab` → `{valid:false, available:false}` ✓
+- `/auth/confirm-email` (no code) → 307 `/contest?email=missing-code` ✓
+- `/auth/confirm-email?code=fake` → 307 `/contest?email=verify-failed` ✓
+- `/onboarding` unauthed → 307 `/login?next=/onboarding` ✓
+- TS, lint, vitest all clean.
+
+**Blocked on (user action) before Phase 9:**
+- Supabase Studio → Authentication → URL Configuration → add `http://localhost:3000/auth/confirm-email` + `https://hunch-seven.vercel.app/auth/confirm-email` to Redirect URLs. Without this, the email-verification link will fail.
+
+**Bundling gotcha caught:**
+- First pass exported `USERNAME_REGEX` from `app/api/username-available/route.ts`. That route imports the DB module (server-only); importing the regex from a client component would have pulled the server graph into the client bundle. Moved both regexes to `lib/identity.ts`.

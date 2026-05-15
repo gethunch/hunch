@@ -28,7 +28,19 @@ _Last updated: 2026-05-15_
 
 ## In progress
 - **Phases 7–9 (onboarding + richer profile)**: in flight. Plan in `/home/rishisethia258/.claude/plans/streamed-snacking-octopus.md`.
-- Phase 7 (schema + onboarded gate) shipped.
+- Phases 7 + 8 shipped. Phase 9 (profile rewrite) next.
+
+## Built (Phase 8)
+- 8 preset avatar SVGs + 1 default in `/public/avatars/`.
+- Supabase Storage `avatars` bucket + RLS policies (`lib/db/migrations/0002_avatars_bucket.sql`); public read, owner-only write under `<user_id>/`.
+- `lib/avatars.ts`: `AVATAR_PRESETS`, `DEFAULT_AVATAR`, `isPresetAvatar`, `isOwnStorageAvatar`, `isValidAvatarForUser`, `resolveAvatarUrl`.
+- `lib/identity.ts`: shared `USERNAME_REGEX`, `EMAIL_REGEX`, length constants.
+- `app/api/username-available/route.ts`: GET `?u=…` → `{valid, available}`.
+- `app/(app)/onboarding/actions.ts`: `completeOnboarding` server action — validates everything, race-safe uniqueness, calls `auth.updateUser({email})` to start verification, redirects to `/contest`.
+- `components/onboarding-form.tsx`: avatar picker (preset grid + upload), name/email/username inputs, live username availability (300ms debounce, derived-status pattern that keeps lint happy), submit gating.
+- `app/(app)/onboarding/page.tsx`: server component, renders form.
+- `app/auth/confirm-email/route.ts`: Supabase confirmation-link callback — exchanges code, mirrors `email_confirmed_at` onto `users.email_verified_at`, redirects to `/contest?email=verified`.
+- `RUNBOOK.md` documents Supabase URL Configuration steps + storage bucket setup.
 
 ## Built (Phase 7)
 - `users` table extended: `first_name`, `last_name`, `email`, `username`, `avatar_url`, `email_verified_at`, `onboarded` (default false). `display_name` dropped.
