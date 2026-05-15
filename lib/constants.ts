@@ -52,7 +52,10 @@ export const NIFTY_50: readonly Nifty50Stock[] = [
   { symbol: "SHRIRAMFIN", name: "Shriram Finance" },
   { symbol: "SUNPHARMA", name: "Sun Pharmaceutical" },
   { symbol: "TATACONSUM", name: "Tata Consumer Products" },
-  { symbol: "TATAMOTORS", name: "Tata Motors" },
+  // TATAMOTORS demerged on 2026-05-14 into TMPV (passenger vehicles) and
+  // TMCV (commercial vehicles). NIFTY 50 retains the larger entity (TMPV).
+  // Verify against NSE's official constituent list before each rebalance.
+  { symbol: "TMPV", name: "Tata Motors Passenger Vehicles" },
   { symbol: "TATASTEEL", name: "Tata Steel" },
   { symbol: "TCS", name: "Tata Consultancy Services" },
   { symbol: "TECHM", name: "Tech Mahindra" },
