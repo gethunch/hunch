@@ -24,15 +24,15 @@ npm run dev
 Open http://localhost:3000.
 
 ### Env vars
-| Key                            | Where used         | Where to get it                                                |
-|--------------------------------|--------------------|----------------------------------------------------------------|
-| `NEXT_PUBLIC_SUPABASE_URL`     | Client + server    | Supabase dashboard → Project Settings → API → Project URL      |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY`| Client + server    | Supabase dashboard → Project Settings → API → anon public key  |
-| `SUPABASE_SERVICE_ROLE_KEY`    | Server only        | Supabase dashboard → Project Settings → API → service_role key |
-| `DATABASE_URL`                 | Drizzle migrations | Supabase dashboard → Settings → Database → Connection string → **Transaction mode (pooled, port 6543)** |
-| `CRON_SECRET`                  | Server only        | Generate locally (`openssl rand -base64 32`); set same value in Vercel env |
+| Key                                       | Where used         | Where to get it                                                                                         |
+|-------------------------------------------|--------------------|---------------------------------------------------------------------------------------------------------|
+| `NEXT_PUBLIC_SUPABASE_URL`                | Client + server    | Supabase → Settings → API → Project URL (or via dashboard URL `.../project/<ref>`)                      |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`    | Client + server    | Supabase → Settings → API → publishable key (`sb_publishable_*`; legacy projects: `anon` JWT)           |
+| `SUPABASE_SECRET_KEY`                     | Server only        | Supabase → Settings → API → secret key (`sb_secret_*`; legacy projects: `service_role` JWT) — **secret** |
+| `DATABASE_URL`                            | Drizzle migrations | Supabase → Settings → Database → Connection string → **Transaction pooler (port 6543)**                 |
+| `CRON_SECRET`                             | Server only        | Generate locally (`openssl rand -base64 32`); set same value in Vercel env                              |
 
-`.env.local` is gitignored. Don't commit secrets.
+`.env.local` is gitignored. Don't commit secrets. `.env.example` (committed) has placeholders.
 
 ### Useful npm scripts
 ```bash
@@ -89,9 +89,11 @@ Supabase dashboard → SQL Editor. Or psql with the **direct** connection string
 
 ### Run migrations
 ```bash
-npm run db:push        # apply Drizzle schema to Supabase (W1)
-npm run db:generate    # emit migration SQL files (optional)
+npm run db:push        # apply Drizzle schema to Supabase (fast path during dev)
+npm run db:generate    # emit migration SQL files into lib/db/migrations (commit these)
+npm run db:studio      # open Drizzle Studio (web UI for inspecting DB)
 ```
+Behind the scenes these are `dotenv-cli` wrappers around `drizzle-kit` that load `.env.local`.
 
 ### Seed a contest manually
 A seed script lands in Phase 2. Until then, insert via SQL editor:

@@ -51,3 +51,25 @@ GitHub org `gethunch` created. Repo will be `gethunch/hunch`.
 This file is auto-generated local Claude Code permission state. Not project state.
 
 **Why:** Local-only; would generate noise commits.
+
+## 2026-05-15 — Env vars use Supabase's new key naming (`PUBLISHABLE_KEY` / `SECRET_KEY`)
+Supabase rolled out new API key formats: `sb_publishable_*` (replaces anon JWT) and `sb_secret_*` (replaces service_role JWT). Our env vars match: `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` and `SUPABASE_SECRET_KEY`. `@supabase/ssr` accepts either format.
+
+**Why:** New project, new naming. Avoid drifting documentation. Functionally identical (publishable respects RLS, secret bypasses it — same as anon/service_role).
+
+## 2026-05-15 — postgres.js driver (not `pg`), `prepare: false` for the pooled connection
+Drizzle pairs cleanly with `postgres` (porsager/postgres) over `pg` for Supabase. `prepare: false` is required because the Transaction-mode pooler on port 6543 doesn't support prepared statements.
+
+**Why:** Matches Drizzle's documented Supabase setup. Single-file client setup; no connection pool to manage on top of Supabase's pooler.
+
+## 2026-05-15 — Drizzle workflow: `db:generate` → commit SQL → apply, not `db:push`
+`drizzle-kit push` crashes on the introspection pass against this Supabase schema (drizzle-kit 0.31 bug: `TypeError: Cannot read properties of undefined (reading 'replace')` while parsing check constraints — happens even with `schemaFilter: ["public"]`). The first push DID create everything correctly; the crash is on the comparison pass for subsequent runs.
+
+Going forward: edit `lib/db/schema.ts` → `npm run db:generate` (creates a migration SQL file under `lib/db/migrations/`) → commit the SQL → apply with a migration runner (TBD; for now we can apply manually via psql or revisit `db:push` if drizzle-kit patches the bug). Migration files in version control are the production-grade flow anyway.
+
+**Why:** Working around a tool bug without going off-stack, while landing on the right flow for prod deploys.
+
+## 2026-05-15 — `schemaFilter: ["public"]` in `drizzle.config.ts`
+Drizzle should never touch Supabase-owned schemas (`auth`, `storage`, `realtime`, `pgsodium`, etc.).
+
+**Why:** Hygiene. Avoids accidentally diffing or modifying anything Supabase manages, and reduces drizzle-kit's introspection surface area.

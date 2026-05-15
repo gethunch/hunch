@@ -7,25 +7,27 @@ _Last updated: 2026-05-15_
 - ESLint configured
 - `/docs` initialized (STATE, DECISIONS, SPEC, RUNBOOK, SESSIONS)
 - `CLAUDE.md` at repo root with full project brief
+- `.env.local` (gitignored) + `.env.example` (committed) for env vars
+- Drizzle ORM + postgres.js driver installed; schema applied to Supabase
+- All 5 tables (`users`, `contests`, `entries`, `entry_picks`, `rating_history`) + `contest_status` enum live in Supabase public schema
+- Migration SQL committed at `lib/db/migrations/0000_*.sql`
+- `lib/db/index.ts` exports a configured Drizzle client (postgres.js, `prepare: false` for the pooled connection)
 
 ## Deployed
 - Nothing yet
 
 ## In progress
-- **Phase 1: Skeleton + auth**
+- **Phase 1: Skeleton + auth** — schema done; auth next.
 
 ## Next (in order)
-1. Receive Supabase creds from product owner (URL, anon key, service_role key, pooled DB URL)
-2. Drizzle setup, schema for all 5 tables, run migrations
-3. Supabase Auth clients (server + browser) via `@supabase/ssr`
-4. Phone OTP sign-in page using Supabase test phone numbers
-5. Middleware protecting `/app/(app)/*`
-6. `/api/me` + first-time user row creation
-7. Deploy to Vercel and verify end-to-end
+1. Install `@supabase/ssr`, build server + browser Supabase clients
+2. Phone OTP sign-in page using Supabase test phone numbers
+3. Middleware protecting `/app/(app)/*`
+4. `/api/me` + first-time user row creation
+5. Deploy to Vercel and verify end-to-end
 
 ## Blocked on product owner
-- Supabase project: create at supabase.com (region `ap-south-1`), provide URL + anon key + service_role key + pooled DB URL
-- Supabase phone provider toggle + test phone number with fixed OTP
+- **Test phone + OTP** in Authentication → Phone Auth → Test phone numbers (e.g., `+919999900001` / `123456`) — needed for the sign-in flow smoke test
 - Vercel account + import repo when we're ready to deploy
 
 ## Known issues
