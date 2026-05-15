@@ -27,22 +27,39 @@ _Last updated: 2026-05-15_
 - Repo is **public** (was private; Vercel hobby tier requires Pro for private org repos, so we flipped — no secrets in git)
 
 ## In progress
-- **Phase 1 — done.** Skeleton + auth shipped.
+- **Phases 1, 2, 3 — all done.**
 
-## Next (Phase 2: Contest seeding + entry submission)
-1. Seed script to insert next Monday's `weekly_pick_5` contest row
-2. NIFTY 50 constants (`lib/constants.ts`) — 50 symbols, hardcoded
-3. `/contest` page: list NIFTY 50, multi-select 5, submit
-4. Server action validates and writes `entries` + 5 `entry_picks`
-5. Confirmation state
+## Built (latest additions)
+- `lib/constants.ts`: NIFTY 50 list (with display names), `weekly_pick_5` format constant, IST date helpers, `nextContestMondayIST`, `contestTimestampsForMonday`.
+- `scripts/seed-contest.ts` + `npm run seed:contest`: idempotent insert of next Monday's contest.
+- `lib/repository/{contests,entries}.ts`: `getCurrentOpenContest`, `getEntryForUser`, transactional `submitEntry`.
+- `/contest` page: 50-stock grid picker, sticky submit bar, locked-in confirmation view.
+- `components/pick-five.tsx`: client picker with 5-pick cap.
+- `app/(app)/contest/actions.ts`: validated server action for submission.
+- `lib/rating/index.ts`: pure `computeRatingDelta(rating, rankFraction, size)` per spec + 28 Vitest tests.
+- `lib/market/index.ts`: Yahoo Finance unofficial source for daily prices, concurrency-capped at 8, NIFTY .NS suffix.
+- `scripts/probe-market.ts` + `npm run probe:market`: sanity check the price fetcher.
+- `app/api/cron/open-contest/route.ts` + `resolve-contest/route.ts`: CRON_SECRET-gated, transactional. Resolve cron also seeds next week.
+- `scripts/seed-test-contest.ts` + `npm run seed:test-contest`: backdated test contest with 5 synthetic users for end-to-end cron testing.
+- TATAMOTORS → TMPV in `lib/constants.ts` (post-demerger fix).
 
-## Blocked on product owner
-- Nothing for Phase 2 kickoff. (NIFTY 50 list is publicly known; we don't need anything new.)
+## Deployed
+- **Production:** https://hunch-seven.vercel.app (auto-deploys from `main`)
+- 5 env vars set in Vercel
+- Auth + contest entry + rating engine + crons all live in prod (crons not yet on a Vercel schedule — that's Phase 6)
+
+## Next (Phase 4: Leaderboard + profile)
+1. `/leaderboard` page — top users by rating, with rating + contests-played, tabular nums
+2. `/profile/[id]` page — rating history chart via Recharts, recent entries
+3. Repository functions: `getTopUsers(limit)`, `getRatingHistory(userId)`, `getRecentEntries(userId, limit)`
+4. Make `displayName` editable in profile (so users aren't stuck with `player-xxxxxxxx`)
+5. Empty states for new users / leaderboards with few entries
 
 ## Open questions / deferred
-- Real SMS provider for production phone OTP → Phase 6 (DLT/TRAI registration).
-- Market data source (NSE vs. Yahoo unofficial) → Phase 3.
-- Custom domain pointing to Vercel deploy → not blocking; whenever there's a brand decision.
+- Real SMS provider for production phone OTP → Phase 6
+- Vercel Cron schedules wired in `vercel.json` → Phase 6
+- Custom domain → whenever there's a brand decision
+- Test data in dev DB (5 test-* users, resolved 2026-05-11 contest, rating_history rows) — keep for now as leaderboard fixture; nuke later via SQL if needed
 
 ## Known issues
 - 2 moderate npm audit warnings on initial scaffold (transitive, not actionable yet — revisit if they affect anything user-facing)

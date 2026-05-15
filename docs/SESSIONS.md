@@ -92,3 +92,25 @@ Append-only. One entry per session.
 
 **Open questions for next session:**
 - Cloud Shell hostname in `next.config.ts` is brittle (session-ID-bound). If a future session starts and `npm run dev` fails the browser smoke test, first thing to update is that line. Consider switching to an env-driven `DEV_ALLOWED_ORIGIN` later if it becomes a recurring annoyance.
+
+---
+
+### Continued: Phase 2 + Phase 3 shipped same session
+**Phase 2 shipped:**
+- NIFTY 50 constants with IST date helpers (no external date lib — fixed UTC+5:30, no DST).
+- Idempotent `seed-contest` script + npm wrapper. Seeded 2026-05-18 contest.
+- `/contest` page with 50-stock multi-select picker (sticky submit bar, hard 5-cap, locked-in confirmation view after submit). Verified end-to-end on localhost.
+- Atomic `submitEntry` transaction (entry + 5 picks + entry_count bump).
+
+**Phase 3 shipped:**
+- Pure `computeRatingDelta` rating function + 28 Vitest tests covering every spec corner (all curve buckets, edge ratings 500..3000, edge contest sizes 1..10000, interpolation, exhaustive sweep).
+- Yahoo Finance unofficial as market data source. Concurrency cap of 8 (Yahoo rejects ~50 parallel). All 50 symbols verified on a known past trading day. Found TATAMOTORS was delisted 2026-05-14 (demerger → TMPV + TMCV); swapped to TMPV.
+- Both cron endpoints (open + resolve), CRON_SECRET-gated, transactional.
+- End-to-end manual test via `seed:test-contest` fixture: 5 synthetic users with varied ratings (900, 1300, 1500, 1700, 2200), 5 distinct pick baskets, backdated to last Mon-Fri so both crons could run. Open cron priced 25 picks. Resolve cron computed returns, ranked, applied deltas (+2 / +4 / -2 / -8 / -30) — math validated by hand against the spec for all 5 entries.
+- Numeric DB columns switched to `mode: "number"` (TS-only; DB unchanged).
+
+**Phases 1+2+3 — DONE.**
+
+**Notes for next session:**
+- Test fixture rows are live in the dev DB. The `test-*` users will appear in the leaderboard (Phase 4) — fine, they make for non-empty fixtures. Cleanup SQL is documented at the top of `scripts/seed-test-contest.ts`.
+- Cron endpoints are deployed to prod but not yet scheduled (Phase 6 work via `vercel.json`).
