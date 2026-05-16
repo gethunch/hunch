@@ -2,6 +2,7 @@ import { sql } from "drizzle-orm";
 import {
   boolean,
   date,
+  index,
   integer,
   numeric,
   pgEnum,
@@ -85,6 +86,10 @@ export const entries = pgTable(
   },
   (t) => [
     uniqueIndex("entries_contest_user_unique").on(t.contestId, t.userId),
+    // Profile "recent entries" reads WHERE user_id = ? ORDER BY submitted_at DESC.
+    // The unique above is (contest_id, user_id) so the leftmost-prefix rule
+    // makes user_id non-indexed on its own.
+    index("entries_user_submitted_idx").on(t.userId, t.submittedAt),
   ],
 );
 
@@ -112,18 +117,26 @@ export const entryPicks = pgTable(
   ],
 );
 
-export const ratingHistory = pgTable("rating_history", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  userId: uuid("user_id")
-    .notNull()
-    .references(() => users.id),
-  contestId: uuid("contest_id")
-    .notNull()
-    .references(() => contests.id),
-  ratingBefore: integer("rating_before").notNull(),
-  ratingAfter: integer("rating_after").notNull(),
-  delta: integer("delta").notNull(),
-  createdAt: timestamp("created_at", { withTimezone: true })
-    .notNull()
-    .defaultNow(),
-});
+export const ratingHistory = pgTable(
+  "rating_history",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id),
+    contestId: uuid("contest_id")
+      .notNull()
+      .references(() => contests.id),
+    ratingBefore: integer("rating_before").notNull(),
+    ratingAfter: integer("rating_after").notNull(),
+    delta: integer("delta").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    // getRatingHistory + getUserRatingAggregates both filter by user_id and
+    // sort by created_at. Composite index serves both queries.
+    index("rating_history_user_created_idx").on(t.userId, t.createdAt),
+  ],
+);
