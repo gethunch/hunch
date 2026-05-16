@@ -147,3 +147,14 @@ Locked phasing for how contest formats expand post-v1. Every new format goes thr
 - **V4 (the "ideal"): `open_trade_X`** — fixed bankroll, full intraday buy/sell, winner is highest portfolio value at close. Requires live data feeds (paid or carefully rate-limited), an order book / position model, market-hours gating, and a rating math rework (percentile-of-return alone rewards concentration, so V4 needs risk-adjustment or position caps before launch).
 
 **Why:** Open-trade is the destination users have asked for, but pulling it forward to V1/V2 multiplies build cost ~10x, breaks the rating math, and commoditises the product (it becomes Moneybhai / Investopedia simulator — a saturated category in India). Pick-5 is the differentiator at V1 precisely because it strips away allocation and timing, isolating one skill (selection). Each step in the roadmap reuses the previous step's infra and either tests one new product dimension or unlocks one new technical capability. The schema's `format` column and the "Coming formats" section on `/rules` already leave the door open; no v1 code needs to change to keep this future possible.
+
+## 2026-05-16 — Carve-out: `lib/market/live.ts` allowed from request paths
+The original CLAUDE.md rule said "Market data module is called only from cron endpoints, never from request paths." That rule was written before `lib/market/live.ts` existed and only ever applied to settlement prices (open + close on cron boundaries). Live-view rendering ([slug]/page.tsx during a contest) needs intraday quotes, which can't come from cron.
+
+The rule is now split in CLAUDE.md:
+- **Settlement data** (`lib/market/index.ts`) stays cron-only. That's the data the rating engine depends on; running it from a user request would create an inconsistent record of what the contest resolved on.
+- **Live snapshot data** (`lib/market/live.ts`) is allowed in request paths via `unstable_cache(60s)` so Yahoo's unofficial endpoint is called at most once per 60s per cache key. Symbols must come from the hardcoded NIFTY 50 list (`lib/constants.ts`) — never user-controlled, to prevent SSRF.
+
+**Why:** Live view needs current portfolio value; only ~50 symbols per call; the 60s cache window keeps blast radius bounded and the Yahoo unauthenticated endpoint usable.
+
+**Future:** if we ever pay for proper feeds (NSE direct, Refinitiv), this might move to a background snapshot writer that populates a `live_prices` table — same direction the V4 open-trade format would need anyway. Until then, request-path + 60s cache is the right shape.

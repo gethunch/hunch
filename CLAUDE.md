@@ -129,7 +129,8 @@ Rules:
 
 - All DB access goes through `/lib/repository`. Routes and server actions never call Drizzle directly.
 - Rating math is a pure function. Imports only types. No DB calls inside it.
-- Market data module is called only from cron endpoints, never from request paths.
+- **Settlement** market data (`lib/market/index.ts` — open/close prices that resolve contests) is called only from cron endpoints, never from request paths.
+- **Live snapshot** market data (`lib/market/live.ts`) may be called from request paths, but only through `unstable_cache`-wrapped readers (≤60s window). Symbols MUST come from the hardcoded `NIFTY_50` list — never user input (SSRF defense).
 - Server-only secrets (Supabase service role key, CRON_SECRET) never imported in client components.
 
 ## Data model
