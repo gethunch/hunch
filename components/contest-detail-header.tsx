@@ -39,7 +39,7 @@ export function ContestDetailHeader({
           {formatPeriod(contest.periodStart)}
         </h1>
         <ContestFormatChips format={contest.format} />
-        {subtitle && <p className="text-sm text-zinc-500">{subtitle}</p>}
+        {subtitle && <div className="text-sm text-zinc-500">{subtitle}</div>}
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-px bg-zinc-900 border border-zinc-900 rounded-lg overflow-hidden">
