@@ -63,6 +63,57 @@ export async function getTopUsers(limit = 50): Promise<AppUser[]> {
     .limit(limit);
 }
 
+export interface LeaderboardPage {
+  rows: AppUser[];
+  total: number;
+}
+
+export async function getLeaderboardPage({
+  offset = 0,
+  limit = 50,
+}: {
+  offset?: number;
+  limit?: number;
+} = {}): Promise<LeaderboardPage> {
+  const where = gt(users.contestsPlayed, 0);
+  const [rows, totalRows] = await Promise.all([
+    db
+      .select()
+      .from(users)
+      .where(where)
+      .orderBy(desc(users.rating), users.id)
+      .limit(limit)
+      .offset(offset),
+    db
+      .select({ count: sql<number>`cast(count(*) as int)` })
+      .from(users)
+      .where(where),
+  ]);
+  return { rows, total: totalRows[0]?.count ?? 0 };
+}
+
+export async function searchUsers(
+  q: string,
+  limit = 25,
+): Promise<AppUser[]> {
+  const trimmed = q.trim();
+  if (!trimmed) return [];
+  const pattern = `%${trimmed.toLowerCase()}%`;
+  return await db
+    .select()
+    .from(users)
+    .where(
+      sql`(
+        lower(${users.username}) like ${pattern}
+        or lower(coalesce(${users.firstName}, '')) like ${pattern}
+        or lower(coalesce(${users.lastName}, '')) like ${pattern}
+        or lower(coalesce(${users.firstName}, '') || ' ' || coalesce(${users.lastName}, '')) like ${pattern}
+      )`,
+    )
+    .orderBy(desc(users.rating), users.id)
+    .limit(limit);
+}
+
 export interface RatingHistoryPoint {
   date: Date;
   ratingAfter: number;
