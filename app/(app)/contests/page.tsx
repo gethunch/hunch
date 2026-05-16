@@ -1,4 +1,3 @@
-import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/repository/users";
 import {
   getLiveContests,
@@ -10,7 +9,6 @@ import { ContestRow } from "@/components/contest-row";
 
 export default async function ContestsPage() {
   const me = await getCurrentUser();
-  if (!me) redirect("/login");
 
   const [live, upcoming, past] = await Promise.all([
     getLiveContests(),
@@ -18,10 +16,12 @@ export default async function ContestsPage() {
     getPastContests({ limit: 10 }),
   ]);
 
-  const myResults = await getMyResultsForContests(
-    me.id,
-    past.map((c) => c.id),
-  );
+  const myResults = me
+    ? await getMyResultsForContests(
+        me.id,
+        past.map((c) => c.id),
+      )
+    : new Map();
 
   return (
     <main className="max-w-3xl mx-auto px-6 py-10 space-y-10">

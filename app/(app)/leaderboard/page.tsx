@@ -1,13 +1,10 @@
 import Image from "next/image";
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { getCurrentUser, getTopUsers } from "@/lib/repository/users";
 import { resolveAvatarUrl } from "@/lib/avatars";
 
 export default async function LeaderboardPage() {
   const me = await getCurrentUser();
-  if (!me) redirect("/login");
-
   const top = await getTopUsers(50);
 
   return (
@@ -29,7 +26,7 @@ export default async function LeaderboardPage() {
       ) : (
         <ol className="border border-zinc-900 rounded-lg divide-y divide-zinc-900">
           {top.map((u, i) => {
-            const isMe = u.id === me.id;
+            const isMe = !!me && u.id === me.id;
             const fullName =
               [u.firstName, u.lastName].filter(Boolean).join(" ").trim() ||
               u.username ||

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { getCurrentUser } from "@/lib/repository/users";
 import {
   getContestBySlug,
@@ -43,29 +43,36 @@ export default async function ContestDetailPage({
   params: Promise<{ slug: string }>;
 }) {
   const me = await getCurrentUser();
-  if (!me) redirect("/login");
 
   const { slug } = await params;
   const contest = await getContestBySlug(slug);
   if (!contest) notFound();
 
+  const meId = me?.id ?? null;
+  const meOnboarded = !!me?.onboarded && !!me.username;
+
   if (contest.status === "resolved") {
-    return <ResolvedView contest={contest} meId={me.id} />;
+    return <ResolvedView contest={contest} meId={meId} />;
   }
   if (contest.status === "live") {
-    return <LiveView contest={contest} meId={me.id} />;
+    return <LiveView contest={contest} meId={meId} />;
   }
-  return <OpenView contest={contest} meId={me.id} />;
+  return (
+    <OpenView contest={contest} meId={meId} meOnboarded={meOnboarded} />
+  );
 }
 
 async function OpenView({
   contest,
   meId,
+  meOnboarded,
 }: {
   contest: NonNullable<Awaited<ReturnType<typeof getContestBySlug>>>;
-  meId: string;
+  meId: string | null;
+  meOnboarded: boolean;
 }) {
-  const existing = await getEntryForUser(contest.id, meId);
+  const existing =
+    meId && meOnboarded ? await getEntryForUser(contest.id, meId) : null;
   const existingPicks = existing ? existing.picks.map((p) => p.symbol) : null;
   // status === "open" implies we're before locks_at; the cron flips status to
   // "live" at lock time. The server action does its own Date.now() check at
@@ -103,13 +110,56 @@ async function OpenView({
         <h2 className="text-xs uppercase tracking-wide text-zinc-500 border-b border-zinc-900 pb-1">
           {existingPicks ? "Your picks" : "Pick 5 stocks"}
         </h2>
-        <EntryView
-          slug={contest.slug}
-          existingPicks={existingPicks}
-          canEdit={canEdit}
-        />
+        {!meId ? (
+          <AuthPrompt
+            title="Sign in to enter"
+            description="You can browse contests without an account. To submit your 5 picks, sign in with your phone."
+            ctaLabel="Sign in to enter →"
+            href={`/login?next=/contests/${contest.slug}`}
+          />
+        ) : !meOnboarded ? (
+          <AuthPrompt
+            title="Finish setting up your profile"
+            description="You're signed in but haven't picked a name, username, and avatar yet. Two minutes."
+            ctaLabel="Complete profile →"
+            href="/onboarding"
+          />
+        ) : (
+          <EntryView
+            slug={contest.slug}
+            existingPicks={existingPicks}
+            canEdit={canEdit}
+          />
+        )}
       </section>
     </main>
+  );
+}
+
+function AuthPrompt({
+  title,
+  description,
+  ctaLabel,
+  href,
+}: {
+  title: string;
+  description: string;
+  ctaLabel: string;
+  href: string;
+}) {
+  return (
+    <div className="border border-zinc-900 rounded-lg p-6 space-y-3">
+      <div className="space-y-1">
+        <h3 className="text-base font-medium">{title}</h3>
+        <p className="text-sm text-zinc-500">{description}</p>
+      </div>
+      <Link
+        href={href}
+        className="inline-block text-sm bg-white text-black rounded-md px-4 py-2 font-medium"
+      >
+        {ctaLabel}
+      </Link>
+    </div>
   );
 }
 
@@ -125,7 +175,7 @@ async function ResolvedView({
   meId,
 }: {
   contest: NonNullable<Awaited<ReturnType<typeof getContestBySlug>>>;
-  meId: string;
+  meId: string | null;
 }) {
   const [leaderboard, picksByEntry, stats, indexChange] = await Promise.all([
     getContestLeaderboard(contest.id),
@@ -207,7 +257,7 @@ async function LiveView({
   meId,
 }: {
   contest: NonNullable<Awaited<ReturnType<typeof getContestBySlug>>>;
-  meId: string;
+  meId: string | null;
 }) {
   const symbols = NIFTY_50.map((s) => s.symbol);
   const [entries, livePicks, livePriceBySymbol, indexLast] = await Promise.all([

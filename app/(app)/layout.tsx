@@ -10,6 +10,7 @@ export default async function AppLayout({
   children: React.ReactNode;
 }) {
   const user = await getCurrentUser();
+  const onboarded = !!user?.onboarded && !!user.username;
 
   return (
     <>
@@ -28,7 +29,23 @@ export default async function AppLayout({
             Leaderboard
           </Link>
           <div className="ml-auto flex items-center gap-4">
-            {user && user.username && (
+            {!user && (
+              <Link
+                href="/login"
+                className="text-zinc-300 hover:text-white border border-zinc-800 hover:border-zinc-600 rounded-md px-3 py-1 transition-colors"
+              >
+                Sign in
+              </Link>
+            )}
+            {user && !onboarded && (
+              <Link
+                href="/onboarding"
+                className="text-zinc-300 hover:text-white border border-zinc-800 hover:border-zinc-600 rounded-md px-3 py-1 transition-colors"
+              >
+                Complete profile
+              </Link>
+            )}
+            {user && onboarded && (
               <Link
                 href={`/profile/${user.username}`}
                 className="flex items-center gap-2 text-zinc-500 hover:text-zinc-200 transition-colors tabular-nums"
@@ -52,14 +69,16 @@ export default async function AppLayout({
                 </span>
               </Link>
             )}
-            <form action={signOut}>
-              <button
-                type="submit"
-                className="text-xs text-zinc-600 hover:text-zinc-300 transition-colors"
-              >
-                Sign out
-              </button>
-            </form>
+            {user && (
+              <form action={signOut}>
+                <button
+                  type="submit"
+                  className="text-xs text-zinc-600 hover:text-zinc-300 transition-colors"
+                >
+                  Sign out
+                </button>
+              </form>
+            )}
           </div>
         </div>
       </nav>

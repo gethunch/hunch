@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import {
   getCurrentUser,
   getRatingHistory,
@@ -16,7 +16,6 @@ export default async function ProfilePage({
   params: Promise<{ username: string }>;
 }) {
   const me = await getCurrentUser();
-  if (!me) redirect("/login");
 
   const { username } = await params;
   const user = await getUserByUsername(username);
@@ -38,7 +37,7 @@ export default async function ProfilePage({
     })),
   ];
 
-  const isMe = user.id === me.id;
+  const isMe = !!me && user.id === me.id;
   const fullName =
     [user.firstName, user.lastName].filter(Boolean).join(" ").trim() ||
     user.username ||

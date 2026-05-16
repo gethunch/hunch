@@ -38,6 +38,9 @@ export async function submitContestEntry(
 ): Promise<SubmitResult> {
   const user = await getCurrentUser();
   if (!user) return { error: "Not signed in" };
+  if (!user.onboarded || !user.username) {
+    return { error: "Finish setting up your profile first" };
+  }
 
   const validation = validateSymbols(symbols);
   if ("error" in validation) return validation;
@@ -69,6 +72,9 @@ export async function updateContestEntry(
 ): Promise<SubmitResult> {
   const user = await getCurrentUser();
   if (!user) return { error: "Not signed in" };
+  if (!user.onboarded || !user.username) {
+    return { error: "Finish setting up your profile first" };
+  }
 
   const validation = validateSymbols(symbols);
   if ("error" in validation) return validation;
