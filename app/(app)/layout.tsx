@@ -36,6 +36,12 @@ export default async function AppLayout({
           >
             Leaderboard
           </Link>
+          <Link
+            href="/rules"
+            className="text-zinc-300 hover:text-white transition-colors"
+          >
+            Rules
+          </Link>
           <div className="ml-auto flex items-center gap-4">
             {!user && (
               <Link
