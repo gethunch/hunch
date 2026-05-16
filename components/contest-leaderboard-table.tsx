@@ -93,11 +93,7 @@ function Row({
         <div className="flex-1 min-w-0">
           <p className="text-sm truncate">
             {href ? (
-              <Link
-                href={href}
-                className="hover:underline"
-                onClick={(e) => e.stopPropagation()}
-              >
+              <Link href={href} className="hover:underline">
                 {fullName}
               </Link>
             ) : (
