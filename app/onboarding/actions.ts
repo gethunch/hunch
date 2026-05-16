@@ -1,7 +1,6 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { headers } from "next/headers";
 import { eq, sql } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { users } from "@/lib/db/schema";
@@ -9,6 +8,7 @@ import { getCurrentUser } from "@/lib/repository/users";
 import { createClient } from "@/lib/supabase/server";
 import { isValidAvatarForUser } from "@/lib/avatars";
 import { EMAIL_REGEX, USERNAME_REGEX } from "@/lib/identity";
+import { siteUrlFor } from "@/lib/site-url";
 
 export type CompleteResult = { error: string } | { ok: true };
 
@@ -84,10 +84,7 @@ export async function completeOnboarding(
   // wrapped — neither is essential to onboarding-completion.
   try {
     const supabase = await createClient();
-    const hdrs = await headers();
-    const host = hdrs.get("host") ?? "localhost:3000";
-    const proto = hdrs.get("x-forwarded-proto") ?? "http";
-    const emailRedirectTo = `${proto}://${host}/auth/confirm-email`;
+    const emailRedirectTo = siteUrlFor("/auth/confirm-email");
     const { error } = await supabase.auth.updateUser(
       { email, data: { onboarded: true } },
       { emailRedirectTo },

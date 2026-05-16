@@ -31,6 +31,7 @@ Open http://localhost:3000.
 | `SUPABASE_SECRET_KEY`                     | Server only        | Supabase → Settings → API → secret key (`sb_secret_*`; legacy projects: `service_role` JWT) — **secret** |
 | `DATABASE_URL`                            | Drizzle migrations | Supabase → Settings → Database → Connection string → **Transaction pooler (port 6543)**                 |
 | `CRON_SECRET`                             | Server only        | Generate locally (`openssl rand -base64 32`); set same value in Vercel env                              |
+| `NEXT_PUBLIC_SITE_URL`                    | Server only        | Canonical site URL — used as the base for Supabase email-confirmation links (`siteUrl()` in `lib/site-url.ts`). Production: `https://hunch.in`. Local: omit and the fallback (`http://localhost:3000`) takes over. **Must be set in every deployed environment** — without it, the fallback would mint local URLs in production emails. |
 
 `.env.local` is gitignored. Don't commit secrets. `.env.example` (committed) has placeholders.
 

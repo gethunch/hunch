@@ -1,7 +1,6 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { headers } from "next/headers";
 import { eq, sql } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { users } from "@/lib/db/schema";
@@ -9,6 +8,7 @@ import { getCurrentUser } from "@/lib/repository/users";
 import { createClient } from "@/lib/supabase/server";
 import { isValidAvatarForUser } from "@/lib/avatars";
 import { EMAIL_REGEX, NAME_MAX_LEN } from "@/lib/identity";
+import { siteUrlFor } from "@/lib/site-url";
 
 export type ActionResult = { ok: true } | { error: string };
 
@@ -79,10 +79,7 @@ export async function updateEmail(emailIn: string): Promise<ActionResult> {
   // redirect URL) doesn't crash the action after the DB write succeeded.
   try {
     const supabase = await createClient();
-    const hdrs = await headers();
-    const host = hdrs.get("host") ?? "localhost:3000";
-    const proto = hdrs.get("x-forwarded-proto") ?? "http";
-    const emailRedirectTo = `${proto}://${host}/auth/confirm-email`;
+    const emailRedirectTo = siteUrlFor("/auth/confirm-email");
     const { error } = await supabase.auth.updateUser(
       { email },
       { emailRedirectTo },
@@ -104,10 +101,7 @@ export async function resendEmailVerification(): Promise<ActionResult> {
 
   try {
     const supabase = await createClient();
-    const hdrs = await headers();
-    const host = hdrs.get("host") ?? "localhost:3000";
-    const proto = hdrs.get("x-forwarded-proto") ?? "http";
-    const emailRedirectTo = `${proto}://${host}/auth/confirm-email`;
+    const emailRedirectTo = siteUrlFor("/auth/confirm-email");
     const { error } = await supabase.auth.updateUser(
       { email: me.email },
       { emailRedirectTo },
