@@ -15,11 +15,17 @@ type EditorUser = {
   firstName: string | null;
   lastName: string | null;
   email: string | null;
+  pendingEmail: string | null;
   emailVerifiedAt: Date | null;
   avatarUrl: string | null;
 };
 
 export function ProfileEditor({ user }: { user: EditorUser }) {
+  // Display the pending value if there's a verification in flight; the
+  // verified address only becomes the surface once confirm-email promotes it.
+  const displayedEmail = user.pendingEmail ?? user.email ?? "";
+  const verified =
+    !user.pendingEmail && user.emailVerifiedAt !== null;
   return (
     <div className="space-y-8 border border-zinc-900 rounded-lg p-6">
       <AvatarSection userId={user.id} initialUrl={user.avatarUrl} />
@@ -27,10 +33,7 @@ export function ProfileEditor({ user }: { user: EditorUser }) {
         initialFirst={user.firstName ?? ""}
         initialLast={user.lastName ?? ""}
       />
-      <EmailSection
-        initialEmail={user.email ?? ""}
-        verified={user.emailVerifiedAt !== null}
-      />
+      <EmailSection initialEmail={displayedEmail} verified={verified} />
     </div>
   );
 }

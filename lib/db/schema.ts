@@ -26,6 +26,7 @@ export const users = pgTable(
     firstName: text("first_name"),
     lastName: text("last_name"),
     email: text("email"),
+    pendingEmail: text("pending_email"),
     username: text("username"),
     avatarUrl: text("avatar_url"),
     emailVerifiedAt: timestamp("email_verified_at", { withTimezone: true }),

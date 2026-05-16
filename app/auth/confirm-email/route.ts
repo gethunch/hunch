@@ -38,10 +38,14 @@ export async function GET(request: Request) {
   } = await supabase.auth.getUser();
 
   if (authUser?.email && authUser.email_confirmed_at) {
+    // Promote: Supabase has confirmed the new address, so move it from
+    // pending_email → email and clear the pending slot. emailVerifiedAt
+    // anchors when verification happened.
     await db
       .update(users)
       .set({
         email: authUser.email,
+        pendingEmail: null,
         emailVerifiedAt: new Date(authUser.email_confirmed_at),
       })
       .where(eq(users.id, authUser.id));

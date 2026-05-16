@@ -49,10 +49,23 @@ export async function updateEmail(emailIn: string): Promise<ActionResult> {
 
   const email = trim(emailIn, 254);
   if (!EMAIL_REGEX.test(email)) return { error: "Email looks invalid" };
+
+  // If the user re-submits their already-verified address, clear any stale
+  // pending value and return early.
   if (email.toLowerCase() === (me.email ?? "").toLowerCase()) {
-    return { ok: true }; // no-op
+    if (me.pendingEmail) {
+      await db
+        .update(users)
+        .set({ pendingEmail: null })
+        .where(eq(users.id, me.id));
+      for (const p of pathsToRevalidate(me.username)) revalidatePath(p);
+    }
+    return { ok: true };
   }
 
+  // Block only against verified claims (users.email). Two users staging the
+  // same pending_email is allowed — Supabase Auth enforces "first to verify
+  // wins" via its own unique-email constraint.
   const clash = await db
     .select({ id: users.id })
     .from(users)
@@ -62,16 +75,15 @@ export async function updateEmail(emailIn: string): Promise<ActionResult> {
     return { error: "Email is already in use" };
   }
 
+  // Stage in pending_email. users.email + emailVerifiedAt stay untouched,
+  // so the existing verified address remains the claim until confirm-email
+  // promotes the new one.
   try {
     await db
       .update(users)
-      .set({ email, emailVerifiedAt: null })
+      .set({ pendingEmail: email })
       .where(eq(users.id, me.id));
-  } catch (err) {
-    const message = err instanceof Error ? err.message : "";
-    if (message.includes("users_email_lower_unique")) {
-      return { error: "Email is already in use" };
-    }
+  } catch {
     return { error: "Could not save — try again" };
   }
 
@@ -84,9 +96,9 @@ export async function updateEmail(emailIn: string): Promise<ActionResult> {
       { email },
       { emailRedirectTo },
     );
-    if (error) console.error("[updateEmail] kickoff:", error);
-  } catch (err) {
-    console.error("[updateEmail] threw:", err);
+    if (error) console.error("[updateEmail] kickoff");
+  } catch {
+    console.error("[updateEmail] threw");
   }
 
   for (const p of pathsToRevalidate(me.username)) revalidatePath(p);
@@ -96,22 +108,28 @@ export async function updateEmail(emailIn: string): Promise<ActionResult> {
 export async function resendEmailVerification(): Promise<ActionResult> {
   const me = await getCurrentUser();
   if (!me) return { error: "Not signed in" };
-  if (!me.email) return { error: "No email on file" };
-  if (me.emailVerifiedAt) return { error: "Already verified" };
+
+  // Resend for the pending value if there is one; otherwise the legacy
+  // "verified email exists but emailVerifiedAt unset" case.
+  const target = me.pendingEmail ?? me.email;
+  if (!target) return { error: "No email on file" };
+  if (!me.pendingEmail && me.emailVerifiedAt) {
+    return { error: "Already verified" };
+  }
 
   try {
     const supabase = await createClient();
     const emailRedirectTo = siteUrlFor("/auth/confirm-email");
     const { error } = await supabase.auth.updateUser(
-      { email: me.email },
+      { email: target },
       { emailRedirectTo },
     );
     if (error) {
-      console.error("[resendEmailVerification] kickoff:", error);
+      console.error("[resendEmailVerification] kickoff");
       return { error: error.message };
     }
-  } catch (err) {
-    console.error("[resendEmailVerification] threw:", err);
+  } catch {
+    console.error("[resendEmailVerification] threw");
     return { error: "Could not send right now — try again" };
   }
   return { ok: true };

@@ -83,6 +83,7 @@ export default async function ProfilePage({
                 firstName: user.firstName,
                 lastName: user.lastName,
                 email: user.email,
+                pendingEmail: user.pendingEmail,
                 emailVerifiedAt: user.emailVerifiedAt,
                 avatarUrl: user.avatarUrl,
               }

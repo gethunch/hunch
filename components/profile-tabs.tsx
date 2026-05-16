@@ -20,6 +20,7 @@ type EditorUser = {
   firstName: string | null;
   lastName: string | null;
   email: string | null;
+  pendingEmail: string | null;
   emailVerifiedAt: Date | null;
   avatarUrl: string | null;
 };

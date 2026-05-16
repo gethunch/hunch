@@ -62,7 +62,9 @@ export async function completeOnboarding(
       .set({
         firstName,
         lastName,
-        email,
+        // Stage in pending_email until Supabase confirms the address.
+        // Promoting to users.email happens in /auth/confirm-email.
+        pendingEmail: email,
         username,
         avatarUrl,
         onboarded: true,
