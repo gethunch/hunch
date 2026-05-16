@@ -8,13 +8,13 @@ import { db } from "@/lib/db";
 import { contests, entries, entryPicks } from "@/lib/db/schema";
 import { CONTEST_FORMAT_WEEKLY_PICK_5, NIFTY_50 } from "@/lib/constants";
 import { fetchDailyPrices } from "@/lib/market";
+import { isAuthorizedCronRequest } from "@/lib/cron/auth";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
 export async function GET(request: Request) {
-  const auth = request.headers.get("authorization");
-  if (auth !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (!isAuthorizedCronRequest(request)) {
     return new Response("Unauthorized", { status: 401 });
   }
 

@@ -22,6 +22,7 @@ import {
 } from "@/lib/constants";
 import { fetchDailyPrices } from "@/lib/market";
 import { computeRatingDelta } from "@/lib/rating";
+import { isAuthorizedCronRequest } from "@/lib/cron/auth";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -29,8 +30,7 @@ export const maxDuration = 60;
 type Pick = typeof entryPicks.$inferSelect;
 
 export async function GET(request: Request) {
-  const auth = request.headers.get("authorization");
-  if (auth !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (!isAuthorizedCronRequest(request)) {
     return new Response("Unauthorized", { status: 401 });
   }
 
