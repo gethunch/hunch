@@ -86,6 +86,7 @@ export async function getRatingHistory(
 export interface ProfileEntry {
   entryId: string;
   contestPeriodStart: string;
+  contestSlug: string;
   finalReturn: number | null;
   finalRank: number | null;
   ratingDelta: number | null;
@@ -103,6 +104,7 @@ export async function getRecentEntries(
       finalRank: entries.finalRank,
       ratingDelta: entries.ratingDelta,
       contestPeriodStart: contests.periodStart,
+      contestSlug: contests.slug,
       submittedAt: entries.submittedAt,
     })
     .from(entries)
@@ -129,6 +131,7 @@ export async function getRecentEntries(
   return entryRows.map((e) => ({
     entryId: e.entryId,
     contestPeriodStart: e.contestPeriodStart,
+    contestSlug: e.contestSlug,
     finalReturn: e.finalReturn,
     finalRank: e.finalRank,
     ratingDelta: e.ratingDelta,

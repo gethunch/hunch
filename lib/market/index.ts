@@ -111,3 +111,65 @@ export async function fetchDailyPrices(
     return { symbol, date, open: data.open, close: data.close };
   });
 }
+
+// Index variant. Yahoo tickers for indices (e.g. NIFTY 50 = ^NSEI) don't take
+// the `.NS` exchange suffix that equities do, so we hit the bare symbol.
+async function fetchIndexOne(
+  symbol: string,
+  date: string,
+): Promise<{ open: number; close: number } | null> {
+  const { period1, period2 } = dateToUnixRange(date);
+  const url =
+    `${YAHOO_BASE}/${encodeURIComponent(symbol)}` +
+    `?period1=${period1}&period2=${period2}&interval=1d`;
+
+  const res = await fetch(url, {
+    headers: { "User-Agent": "Mozilla/5.0 (compatible; HunchBot/0.1)" },
+    cache: "no-store",
+  });
+  if (!res.ok) return null;
+  const data = (await res.json()) as {
+    chart?: {
+      result?: Array<{
+        indicators?: {
+          quote?: Array<{ open?: (number | null)[]; close?: (number | null)[] }>;
+        };
+      }>;
+    };
+  };
+  const result = data?.chart?.result?.[0];
+  const quote = result?.indicators?.quote?.[0];
+  const opens = quote?.open;
+  const closes = quote?.close;
+  if (!opens || !closes || opens.length === 0) return null;
+  for (let i = opens.length - 1; i >= 0; i--) {
+    const o = opens[i];
+    const c = closes[i];
+    if (o != null && c != null) return { open: o, close: c };
+  }
+  return null;
+}
+
+// NIFTY 50 (^NSEI) Monday-open → Friday-close benchmark for a given contest
+// week. Returns null if Yahoo is unreachable or returns no data — callers
+// render "—" rather than crashing.
+export async function fetchIndexWeeklyChange(
+  periodStart: string,
+): Promise<{ openMonday: number; closeFriday: number; change: number } | null> {
+  // Friday = Monday + 4 days, computed via UTC noon to avoid DST/edge issues.
+  const noon = new Date(`${periodStart}T12:00:00Z`);
+  noon.setUTCDate(noon.getUTCDate() + 4);
+  const fridayDate = noon.toISOString().slice(0, 10);
+
+  try {
+    const [mon, fri] = await Promise.all([
+      fetchIndexOne("^NSEI", periodStart),
+      fetchIndexOne("^NSEI", fridayDate),
+    ]);
+    if (!mon || !fri) return null;
+    const change = (fri.close - mon.open) / mon.open;
+    return { openMonday: mon.open, closeFriday: fri.close, change };
+  } catch {
+    return null;
+  }
+}

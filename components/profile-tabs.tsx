@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { RatingChart, type RatingPoint } from "@/components/rating-chart";
 import { ProfileEditor } from "@/components/profile-editor";
@@ -7,6 +8,7 @@ import { ProfileEditor } from "@/components/profile-editor";
 type Entry = {
   entryId: string;
   contestPeriodStart: string;
+  contestSlug: string;
   finalReturn: number | null;
   finalRank: number | null;
   ratingDelta: number | null;
@@ -91,10 +93,11 @@ export function ProfileTabs({
           ) : (
             <ul className="space-y-3">
               {entries.map((e) => (
-                <li
-                  key={e.entryId}
-                  className="border border-zinc-900 rounded-md p-4"
-                >
+                <li key={e.entryId}>
+                  <Link
+                    href={`/contests/${e.contestSlug}`}
+                    className="block border border-zinc-900 rounded-md p-4 hover:bg-zinc-950 transition-colors"
+                  >
                   <div className="flex items-baseline justify-between mb-3">
                     <span className="text-sm font-medium">
                       Week of {e.contestPeriodStart}
@@ -144,6 +147,7 @@ export function ProfileTabs({
                       </span>
                     </p>
                   )}
+                  </Link>
                 </li>
               ))}
             </ul>
