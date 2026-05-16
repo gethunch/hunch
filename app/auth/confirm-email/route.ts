@@ -1,7 +1,5 @@
 import { NextResponse } from "next/server";
-import { eq } from "drizzle-orm";
-import { db } from "@/lib/db";
-import { users } from "@/lib/db/schema";
+import { markUserEmailVerified } from "@/lib/repository/users";
 import { createClient } from "@/lib/supabase/server";
 import { safeNextPath } from "@/lib/safe-next";
 
@@ -32,23 +30,17 @@ export async function GET(request: Request) {
   }
 
   // After the exchange Supabase has updated auth.user.email + email_confirmed_at.
-  // Mirror that on our users row.
+  // Mirror that on our users row: pending_email → email, stamp verified.
   const {
     data: { user: authUser },
   } = await supabase.auth.getUser();
 
   if (authUser?.email && authUser.email_confirmed_at) {
-    // Promote: Supabase has confirmed the new address, so move it from
-    // pending_email → email and clear the pending slot. emailVerifiedAt
-    // anchors when verification happened.
-    await db
-      .update(users)
-      .set({
-        email: authUser.email,
-        pendingEmail: null,
-        emailVerifiedAt: new Date(authUser.email_confirmed_at),
-      })
-      .where(eq(users.id, authUser.id));
+    await markUserEmailVerified(
+      authUser.id,
+      authUser.email,
+      new Date(authUser.email_confirmed_at),
+    );
   }
 
   return NextResponse.redirect(new URL(next, url.origin));

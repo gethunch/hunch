@@ -167,6 +167,108 @@ export async function getUserRatingAggregates(
   return result;
 }
 
+// --- Mutations ---
+// Centralized here per CLAUDE.md: "All DB access goes through /lib/repository.
+// Routes and server actions never call Drizzle directly."
+
+export async function isUsernameTaken(username: string): Promise<boolean> {
+  const rows = await db
+    .select({ id: users.id })
+    .from(users)
+    .where(sql`lower(${users.username}) = lower(${username})`)
+    .limit(1);
+  return rows.length > 0;
+}
+
+export async function findUserIdByEmail(
+  email: string,
+): Promise<string | null> {
+  const rows = await db
+    .select({ id: users.id })
+    .from(users)
+    .where(sql`lower(${users.email}) = lower(${email})`)
+    .limit(1);
+  return rows[0]?.id ?? null;
+}
+
+export interface OnboardingPayload {
+  firstName: string;
+  lastName: string;
+  pendingEmail: string;
+  username: string;
+  avatarUrl: string;
+}
+
+export async function applyOnboarding(
+  userId: string,
+  payload: OnboardingPayload,
+): Promise<void> {
+  await db
+    .update(users)
+    .set({
+      firstName: payload.firstName,
+      lastName: payload.lastName,
+      pendingEmail: payload.pendingEmail,
+      username: payload.username,
+      avatarUrl: payload.avatarUrl,
+      onboarded: true,
+    })
+    .where(eq(users.id, userId));
+}
+
+export async function updateUserName(
+  userId: string,
+  firstName: string,
+  lastName: string,
+): Promise<void> {
+  await db
+    .update(users)
+    .set({ firstName, lastName })
+    .where(eq(users.id, userId));
+}
+
+export async function updateUserAvatar(
+  userId: string,
+  avatarUrl: string,
+): Promise<void> {
+  await db
+    .update(users)
+    .set({ avatarUrl })
+    .where(eq(users.id, userId));
+}
+
+export async function updateUserPendingEmail(
+  userId: string,
+  pendingEmail: string,
+): Promise<void> {
+  await db
+    .update(users)
+    .set({ pendingEmail })
+    .where(eq(users.id, userId));
+}
+
+export async function clearUserPendingEmail(userId: string): Promise<void> {
+  await db
+    .update(users)
+    .set({ pendingEmail: null })
+    .where(eq(users.id, userId));
+}
+
+export async function markUserEmailVerified(
+  userId: string,
+  email: string,
+  verifiedAt: Date,
+): Promise<void> {
+  await db
+    .update(users)
+    .set({
+      email,
+      pendingEmail: null,
+      emailVerifiedAt: verifiedAt,
+    })
+    .where(eq(users.id, userId));
+}
+
 export interface RatingHistoryPoint {
   date: Date;
   ratingAfter: number;

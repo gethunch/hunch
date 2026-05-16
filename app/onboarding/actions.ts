@@ -1,10 +1,12 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { eq, sql } from "drizzle-orm";
-import { db } from "@/lib/db";
-import { users } from "@/lib/db/schema";
-import { getCurrentUser } from "@/lib/repository/users";
+import {
+  applyOnboarding,
+  findUserIdByEmail,
+  getCurrentUser,
+  isUsernameTaken,
+} from "@/lib/repository/users";
 import { createClient } from "@/lib/supabase/server";
 import { isValidAvatarForUser } from "@/lib/avatars";
 import { EMAIL_REGEX, USERNAME_REGEX } from "@/lib/identity";
@@ -46,35 +48,25 @@ export async function completeOnboarding(
     return { error: "Pick or upload an avatar" };
   }
 
-  // Pre-flight uniqueness checks. Race-safe versions live in the catch below.
-  const usernameClash = await db
-    .select({ id: users.id })
-    .from(users)
-    .where(sql`lower(${users.username}) = lower(${username})`)
-    .limit(1);
-  if (usernameClash[0]) return { error: "Username is taken" };
-
-  const emailClash = await db
-    .select({ id: users.id })
-    .from(users)
-    .where(sql`lower(${users.email}) = lower(${email})`)
-    .limit(1);
-  if (emailClash[0]) return { error: "Email is already in use" };
+  // Pre-flight uniqueness checks. The DB unique indices remain authoritative
+  // (the catch below handles race losses); these run first for nicer errors.
+  if (await isUsernameTaken(username)) {
+    return { error: "Username is taken" };
+  }
+  if ((await findUserIdByEmail(email)) !== null) {
+    return { error: "Email is already in use" };
+  }
 
   try {
-    await db
-      .update(users)
-      .set({
-        firstName,
-        lastName,
-        // Stage in pending_email until Supabase confirms the address.
-        // Promoting to users.email happens in /auth/confirm-email.
-        pendingEmail: email,
-        username,
-        avatarUrl,
-        onboarded: true,
-      })
-      .where(eq(users.id, me.id));
+    // Stage email in pending_email until Supabase confirms; promoted to
+    // users.email by /auth/confirm-email.
+    await applyOnboarding(me.id, {
+      firstName,
+      lastName,
+      pendingEmail: email,
+      username,
+      avatarUrl,
+    });
   } catch (err) {
     const message = err instanceof Error ? err.message : "";
     if (message.includes("users_username_lower_unique")) {
@@ -97,10 +89,10 @@ export async function completeOnboarding(
       { emailRedirectTo },
     );
     if (error) {
-      console.error("[completeOnboarding] auth.updateUser:", error);
+      console.error("[completeOnboarding] auth.updateUser failed");
     }
-  } catch (err) {
-    console.error("[completeOnboarding] auth.updateUser threw:", err);
+  } catch {
+    console.error("[completeOnboarding] auth.updateUser threw");
   }
 
   redirect("/contest");
