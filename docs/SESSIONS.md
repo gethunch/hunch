@@ -228,6 +228,43 @@ Now extending Hunch with a proper signup-completion step. Plan at `/home/rishise
 
 ---
 
+### 2026-05-16 — Phases 12–15 shipped (full contests UI)
+After Phase 11 laid the data + slug groundwork, the four UI phases landed back-to-back as one autopilot push.
+
+**Phase 12 — `/contests` index:**
+- Server component lists Live + Upcoming + Past sections; rows link to `/contests/[slug]`.
+- `getMyResultsForContests(userId, contestIds)` repo helper for the past-row "you finished Xth · +Y" inline.
+- Nav renamed Contest → Contests.
+
+**Phase 13 — past contest detail:**
+- Resolved layout: detail header + 4-cell stat strip (entries / median / top / NIFTY 50 ^NSEI weekly change), Crowd cards (top-3 most-picked + best/worst stock), "Your result" pin if you played, expandable per-pick returns on every leaderboard row.
+- `getContestLeaderboard`, `getContestPicks`, `getContestStats` + `fetchIndexWeeklyChange` (^NSEI variant of `fetchOne` since indices don't take `.NS` suffix).
+- Profile recent-entry cards now link straight into the contest page.
+
+**Phase 14 — live contest detail:**
+- Yahoo `/v7/finance/quote` is now auth-walled; fell back to chart endpoint with `range=1d&interval=1d` and `meta.regularMarketPrice`.
+- `lib/market/live.ts` wraps the batch fetch in `unstable_cache` with `revalidate: 60` (tag `live-prices`); page also sets `export const revalidate = 60`.
+- Live view computes ranks in memory from stored entry_price + current live price; "Your position (live)" block + countdown to resolve.
+
+**Phase 15 — entry flow consolidation:**
+- Open layout under `/contests/[slug]`: detail header + EntryView (toggles between locked-in display and edit picker).
+- Entry actions moved to `app/(app)/contests/[slug]/actions.ts`; `submitContestEntry(slug, symbols)` + `updateContestEntry(slug, symbols)`.
+- PickFive refactored: takes `slug`, `mode`, optional `initialSymbols`. Same component handles both create + edit flows.
+- `updateEntry` repo helper: transactional replace-picks (leaves submittedAt + entry_count alone).
+- `/contest` (singular) → 307 redirect to current active `/contests/[slug]`.
+- Old `/contest/actions.ts` deleted.
+
+**Verified:**
+- TS / lint / Vitest clean after each phase.
+- Smoke tests on running dev server: `/contests`, `/contests/[any-resolved-slug]`, `/contests/[open-slug]`, `/contest` all return correct redirects (unauthed → /login; otherwise the right detail page).
+- Lint flagged a `Date.now()` impurity in the server-rendered open view — removed it; status='open' is the source of truth (the resolve cron flips to live exactly at lock time), and the server action does its own Date.now() check at submit-time.
+
+**Notes:**
+- Live view can't be smoke-tested against the current DB (no contest in `live` status — the next real flip happens Monday 9:15 IST via the open-contest cron). The path is exercised entirely through the same components as the resolved view, so confidence is high.
+- Yahoo intraday endpoint occasionally drops connections under burst; live cache absorbs that (callers see whatever's cached), but if the cold-start fetch fails the page would render with `—` in stat cells. Acceptable for v1.
+
+---
+
 ### 2026-05-16 — Phase 11 shipped (contest slug + history seed)
 **Goal:** lay the groundwork for the `/contests` UI revamp (Phases 12–15). Add a slug column so contests have shareable URLs, then seed 6 weeks of past data so the index + per-contest pages have something to render.
 

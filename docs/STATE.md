@@ -30,6 +30,20 @@ _Last updated: 2026-05-15_
 - **Phases 7–10 (onboarding + richer profile + modal/tabs polish)**: shipped.
 - Plan in `/home/rishisethia258/.claude/plans/streamed-snacking-octopus.md` (covered Phases 7–9). Phase 10 followed directly from in-chat feedback.
 
+## Built (Phases 12–15 — contests UI)
+- `/contests` (new top-level page) lists Live, Upcoming, Past sections. Each row links to `/contests/[slug]`. `ContestRow` component renders status pill + period + context-appropriate stat (countdown for live/upcoming, your-result for past). `getMyResultsForContests` repo query joins entries × users in one shot to avoid N+1.
+- `/contests/[slug]` dispatches on contest status:
+  - **resolved** → detail header with a 4-cell stat strip (entries · median · top · NIFTY 50 weekly change from `^NSEI`), a Crowd row (top-3 most-picked + best/worst stock that week), a "Your result" block when you played, and the full leaderboard with expandable per-pick returns.
+  - **live** → same shell, swapped for intraday values. `lib/market/live.ts` hits Yahoo's chart endpoint with `range=1d&interval=1d` and reads `meta.regularMarketPrice`. Wrapped in `next/cache` `unstable_cache` with `revalidate: 60`. Route segment also sets `export const revalidate = 60`.
+  - **open** → contest detail header + entry picker (or "locked in" view with Edit button if you've already submitted).
+- `/contest` (singular) becomes a redirect to the current active `/contests/[slug]` for backwards-compat.
+- Entry flow lives at `app/(app)/contests/[slug]/actions.ts` with `submitContestEntry(slug, symbols)` + `updateContestEntry(slug, symbols)`. `PickFive` refactored to take `slug` + `mode` + optional `initialSymbols`. New `EntryView` client component toggles between locked-in display and edit-mode picker.
+- `lib/repository/entries.ts` `updateEntry({entryId, symbols})` — replaces picks in a transaction; doesn't touch `submittedAt` or `entry_count`.
+- `lib/repository/users.ts` `getRecentEntries` now includes `contestSlug`; profile recent-entry cards link directly into the corresponding contest page.
+- New shared helpers in `lib/contest-display.ts` (formatLabel / formatPeriod / formatDayMonth / formatTimeUntil / formatTimeSince / formatReturnPct / formatRatingDelta), reused everywhere contest data renders.
+- Components added: `contest-row.tsx`, `contest-detail-header.tsx`, `contest-leaderboard-table.tsx`, `entry-view.tsx`.
+- Nav link updated: "Contest" → "Contests" pointing at `/contests`.
+
 ## Built (Phase 11 — slug + history seed)
 - `contests.slug` column (text not null unique). Hand-written migration `0003_contest_slug.sql` applied to dev DB (2 existing rows backfilled via `to_char(period_start, 'DD-Mon-YY')`).
 - `contestSlug({format, periodStart})` helper in `lib/constants.ts` + 4 Vitest cases.
