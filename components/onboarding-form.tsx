@@ -215,7 +215,7 @@ export function OnboardingForm({ userId }: { userId: string }) {
       <button
         type="submit"
         disabled={!canSubmit}
-        className="w-full bg-emerald-600 text-white font-medium rounded py-2.5 text-sm hover:bg-emerald-500 transition-colors disabled:bg-zinc-800 disabled:text-zinc-500 disabled:cursor-not-allowed"
+        className="w-full bg-white text-black font-medium rounded py-2.5 text-sm hover:bg-zinc-200 transition-colors disabled:bg-zinc-800 disabled:text-zinc-500 disabled:cursor-not-allowed"
       >
         {isPending ? "Saving…" : "Save and continue"}
       </button>

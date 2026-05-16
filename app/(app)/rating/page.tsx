@@ -112,6 +112,7 @@ function SearchBar({ initialValue }: { initialValue: string }) {
         type="text"
         name="q"
         defaultValue={initialValue}
+        aria-label="Find a player by username or name"
         placeholder="Find a player by username or name…"
         autoComplete="off"
         spellCheck={false}

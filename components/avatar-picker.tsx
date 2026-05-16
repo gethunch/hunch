@@ -137,10 +137,22 @@ function AvatarModal({
           <button
             type="button"
             onClick={onClose}
-            className="text-zinc-500 hover:text-zinc-200 text-sm"
+            className="text-zinc-500 hover:text-zinc-200 transition-colors"
             aria-label="Close"
           >
-            ✕
+            <svg
+              aria-hidden
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="w-4 h-4"
+            >
+              <path d="M18 6 6 18" />
+              <path d="m6 6 12 12" />
+            </svg>
           </button>
         </div>
 
