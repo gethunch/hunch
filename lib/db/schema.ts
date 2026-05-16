@@ -48,6 +48,7 @@ export const contests = pgTable(
     id: uuid("id").primaryKey().defaultRandom(),
     format: text("format").notNull(),
     periodStart: date("period_start").notNull(),
+    slug: text("slug").notNull(),
     opensAt: timestamp("opens_at", { withTimezone: true }).notNull(),
     locksAt: timestamp("locks_at", { withTimezone: true }).notNull(),
     resolvesAt: timestamp("resolves_at", { withTimezone: true }).notNull(),
@@ -56,6 +57,7 @@ export const contests = pgTable(
   },
   (t) => [
     uniqueIndex("contests_format_period_unique").on(t.format, t.periodStart),
+    uniqueIndex("contests_slug_unique").on(t.slug),
   ],
 );
 

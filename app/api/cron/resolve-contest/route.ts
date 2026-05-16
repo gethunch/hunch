@@ -15,6 +15,7 @@ import {
 import {
   CONTEST_FORMAT_WEEKLY_PICK_5,
   NIFTY_50,
+  contestSlug,
   contestTimestampsForMonday,
   istDateString,
   nextContestMondayIST,
@@ -198,6 +199,10 @@ export async function GET(request: Request) {
       await tx.insert(contests).values({
         format: CONTEST_FORMAT_WEEKLY_PICK_5,
         periodStart: nextMonday,
+        slug: contestSlug({
+          format: CONTEST_FORMAT_WEEKLY_PICK_5,
+          periodStart: nextMonday,
+        }),
         opensAt,
         locksAt,
         resolvesAt,

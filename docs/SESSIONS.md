@@ -228,6 +228,35 @@ Now extending Hunch with a proper signup-completion step. Plan at `/home/rishise
 
 ---
 
+### 2026-05-16 — Phase 11 shipped (contest slug + history seed)
+**Goal:** lay the groundwork for the `/contests` UI revamp (Phases 12–15). Add a slug column so contests have shareable URLs, then seed 6 weeks of past data so the index + per-contest pages have something to render.
+
+**Shipped:**
+- `contests.slug` (text, not null, unique). Migration `0003_contest_slug.sql` adds the column, backfills via `lower(replace(format,'_','-') || '-' || to_char(period_start,'DD-Mon-YY'))`, then locks NOT NULL + unique index. Applied to dev DB — 2 existing rows backfilled cleanly.
+- `contestSlug({format, periodStart})` in `lib/constants.ts` + Vitest coverage.
+- `lib/repository/contests.ts`: `getContestBySlug`, `getLiveContests`, `getUpcomingContests`, `getPastContests`, `getCurrentActiveContest`.
+- `resolve-contest` cron + both seed scripts now write the slug.
+- `scripts/_data/indian-names.ts`: curated 200+ first names, 120+ surnames spanning regions and communities.
+- `scripts/seed-history.ts` + `npm run seed:history`: 6 fully-resolved past contests × ~60 entries each. Real Yahoo Finance open/close prices for each Monday/Friday. Realistic Indian-named users with deterministic usernames. Phones in `+917000000XXX` range. Idempotent re-runs.
+
+**Verified:**
+- TS / lint / Vitest clean.
+- Migration applied; existing 2026-05-18 (open) + 2026-05-11 (resolved test fixture) backfilled.
+- Seed completed end-to-end (with 2 transient Yahoo retries that the script's exponential-backoff handled). DB now has: 6 resolved contests, 1 open, 120 seed users with rating spread 1414–1591 (avg 1498) and 1–6 contests played each.
+- Top-3 row from `weekly-pick-5-11-may-26` reads naturally: Mitali Krishnan / Anushka Tandon / Krishanu Mittal with returns ~+2.5%, +2.2%, +1.1% and rating deltas +47/+42/+35.
+
+**Notes:**
+- TMPV excluded from seed picks (didn't trade pre-demerger; would crash `fetchDailyPrices` for older contests). Effective seed pool: 49/50 NIFTY 50 symbols.
+- Old `test_*` users from `seed-test-contest` remain in DB as orphans (`contestsPlayed=1`, no entries). Pre-existing state — cleanup SQL documented in RUNBOOK. Auto-mode classifier (correctly) blocked an attempt to nuke them since they pre-date this session.
+
+**Next (Phases 12–15):**
+- `/contests` index page (live + upcoming + past sections)
+- `/contests/[slug]` past contest detail (leaderboard, crowd metrics, NIFTY 50 benchmark)
+- `/contests/[slug]` live (server-cached 60s revalidate with intraday prices)
+- `/contests/[slug]` upcoming (entry flow moves here; `/contest` becomes a redirect)
+
+---
+
 ### Continued: Phase 10 shipped (avatar modal + onboarding required + profile tabs)
 **Feedback from user after Phase 9 testing:**
 - Avatar picker should be a modal popup, not an inline grid.

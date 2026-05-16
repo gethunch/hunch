@@ -12,6 +12,7 @@
     "db:studio": "dotenv -e .env.local -- drizzle-kit studio",
     "seed:contest": "dotenv -e .env.local -- tsx scripts/seed-contest.ts",
     "seed:test-contest": "dotenv -e .env.local -- tsx scripts/seed-test-contest.ts",
+    "seed:history": "dotenv -e .env.local -- tsx scripts/seed-history.ts",
     "probe:market": "tsx scripts/probe-market.ts",
     "test": "vitest run",
     "test:watch": "vitest"

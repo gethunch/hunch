@@ -76,6 +76,36 @@ export const CONTEST_FORMAT_WEEKLY_PICK_5 = "weekly_pick_5";
 export const PICKS_PER_ENTRY = 5;
 
 // =======================================================================
+// Contest slug
+// =======================================================================
+// Human-readable identifier for a contest. Used in URLs (`/contests/<slug>`)
+// and stored as a unique column. Deterministic from (format, periodStart),
+// so re-deriving is always safe.
+//
+//   format = weekly_pick_5
+//   periodStart = 2026-05-18
+//   slug = weekly-pick-5-18-may-26
+
+const MONTH_SLUGS = [
+  "jan", "feb", "mar", "apr", "may", "jun",
+  "jul", "aug", "sep", "oct", "nov", "dec",
+] as const;
+
+export function contestSlug({
+  format,
+  periodStart,
+}: {
+  format: string;
+  periodStart: string;
+}): string {
+  const [year, month, day] = periodStart.split("-");
+  const yy = year.slice(2);
+  const mon = MONTH_SLUGS[parseInt(month, 10) - 1];
+  const formatSlug = format.replace(/_/g, "-");
+  return `${formatSlug}-${day}-${mon}-${yy}`;
+}
+
+// =======================================================================
 // IST date helpers
 // =======================================================================
 // India Standard Time is a fixed offset of UTC+05:30 with no DST.

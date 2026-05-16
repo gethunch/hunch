@@ -94,6 +94,19 @@ npm run seed:test-contest  # inserts backdated contest with 5 synthetic users
 ```
 Cleanup SQL is at the top of `scripts/seed-test-contest.ts`.
 
+### Seed past-contest history (for /contests pages)
+```bash
+npm run seed:history  # 6 fully-resolved past contests × ~60 fake users each
+```
+- Real Yahoo Finance prices; expect ~30–90s wall time, occasional retries on Yahoo connect-timeouts (the script handles them with exponential backoff).
+- **Idempotent:** re-running drops the 6 seed contests + 120 seed users (phones in `+917000000XXX`) and re-creates everything. Other contests + users untouched.
+- Fake users are flagged by phone prefix `+917000000` (impossible for real Indian mobiles, which never start with 7-0-0-0-0-0-0-0-0).
+- Note: if you previously ran `seed:test-contest`, those 5 `test_*` users may remain as orphans with stale `contests_played=1` and no entries. Clean up manually if they bother you:
+  ```sql
+  delete from users where phone in
+    ('+919999900010','+919999900011','+919999900012','+919999900013','+919999900014');
+  ```
+
 ---
 
 ## DB
@@ -109,11 +122,12 @@ npm run db:studio      # open Drizzle Studio (web UI for inspecting DB)
 ```
 Behind the scenes these are `dotenv-cli` wrappers around `drizzle-kit` that load `.env.local`.
 
-For hand-written migrations (e.g. `0001_onboarding_fields.sql`, `0002_avatars_bucket.sql`), apply via psql:
+For hand-written migrations (e.g. `0001_onboarding_fields.sql`, `0002_avatars_bucket.sql`, `0003_contest_slug.sql`), apply via psql:
 ```bash
 set -a && source .env.local && set +a
 psql "$DATABASE_URL" -f lib/db/migrations/0001_onboarding_fields.sql
 psql "$DATABASE_URL" -f lib/db/migrations/0002_avatars_bucket.sql
+psql "$DATABASE_URL" -f lib/db/migrations/0003_contest_slug.sql
 ```
 `db:generate` requires a TTY for rename conflict resolution and is awkward in this environment — keep hand-rolled migrations as the default for non-trivial schema changes.
 

@@ -14,6 +14,7 @@ import { db } from "@/lib/db";
 import { contests } from "@/lib/db/schema";
 import {
   CONTEST_FORMAT_WEEKLY_PICK_5,
+  contestSlug,
   contestTimestampsForMonday,
   nextContestMondayIST,
 } from "@/lib/constants";
@@ -47,6 +48,7 @@ async function main() {
     .values({
       format: CONTEST_FORMAT_WEEKLY_PICK_5,
       periodStart,
+      slug: contestSlug({ format: CONTEST_FORMAT_WEEKLY_PICK_5, periodStart }),
       opensAt,
       locksAt,
       resolvesAt,

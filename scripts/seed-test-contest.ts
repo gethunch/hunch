@@ -15,7 +15,7 @@
 import { and, eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { contests, entries, entryPicks, users } from "@/lib/db/schema";
-import { CONTEST_FORMAT_WEEKLY_PICK_5 } from "@/lib/constants";
+import { CONTEST_FORMAT_WEEKLY_PICK_5, contestSlug } from "@/lib/constants";
 import { randomUUID } from "node:crypto";
 
 const TEST_PERIOD_START = "2026-05-11"; // last Monday before today (2026-05-15)
@@ -92,6 +92,10 @@ async function main() {
     .values({
       format: CONTEST_FORMAT_WEEKLY_PICK_5,
       periodStart: TEST_PERIOD_START,
+      slug: contestSlug({
+        format: CONTEST_FORMAT_WEEKLY_PICK_5,
+        periodStart: TEST_PERIOD_START,
+      }),
       opensAt: TEST_OPENS_AT,
       locksAt: TEST_OPENS_AT,
       resolvesAt: TEST_RESOLVES_AT,

@@ -18,7 +18,7 @@ Weekly skill-rated stock-prediction contest on NIFTY 50. Users pick 5 stocks eac
 See `/CLAUDE.md` for full column definitions. Summary:
 
 - **users** — Supabase auth id mirror, phone (unique), first_name, last_name, email (unique on `lower(email)`), username (unique on `lower(username)`, immutable post-onboarding), avatar_url, email_verified_at, onboarded (default false), rating (default 1500), contests_played.
-- **contests** — format (v1: `weekly_pick_5`), period_start (Monday IST for weekly), opens_at, locks_at, resolves_at, status (`open`|`live`|`resolved`), entry_count. `unique(format, period_start)`.
+- **contests** — format (v1: `weekly_pick_5`), period_start (Monday IST for weekly), `slug` (human-readable, unique; derived as `<format-with-hyphens>-<DD-mon-YY>` e.g. `weekly-pick-5-18-may-26`), opens_at, locks_at, resolves_at, status (`open`|`live`|`resolved`), entry_count. `unique(format, period_start)`, `unique(slug)`.
 - **entries** — (contest_id, user_id) unique. Final return, rank, rating_delta populated at resolution.
 - **entry_picks** — 5 rows per entry (`unique(entry_id, symbol)`). Entry/exit prices.
 - **rating_history** — append-only log of per-contest rating changes.

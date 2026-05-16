@@ -30,6 +30,15 @@ _Last updated: 2026-05-15_
 - **Phases 7–10 (onboarding + richer profile + modal/tabs polish)**: shipped.
 - Plan in `/home/rishisethia258/.claude/plans/streamed-snacking-octopus.md` (covered Phases 7–9). Phase 10 followed directly from in-chat feedback.
 
+## Built (Phase 11 — slug + history seed)
+- `contests.slug` column (text not null unique). Hand-written migration `0003_contest_slug.sql` applied to dev DB (2 existing rows backfilled via `to_char(period_start, 'DD-Mon-YY')`).
+- `contestSlug({format, periodStart})` helper in `lib/constants.ts` + 4 Vitest cases.
+- `lib/repository/contests.ts` extended: `getContestBySlug`, `getLiveContests`, `getUpcomingContests`, `getPastContests`, `getCurrentActiveContest`.
+- `resolve-contest` cron writes the slug for the auto-created next contest. `seed-contest` + `seed-test-contest` scripts updated to write the slug.
+- `scripts/_data/indian-names.ts`: curated 200+ first names, 120+ surnames across regions/communities.
+- `scripts/seed-history.ts` + `npm run seed:history`: 6 resolved contests × ~60 entries each, real Yahoo Finance prices, fully idempotent.
+- Phase 11 verified end-to-end: 6 contests resolved, 120 fake users, 360 entries, 1800 picks, 360 rating-history rows. Rating distribution spread 1414–1591 (median ~1500) after 6 weeks.
+
 ## Built (Phase 10)
 - `components/avatar-picker.tsx` rewritten as a modal trigger: clickable preview + "Change/Pick" button → opens a dark-themed dialog with the 8 presets + "Upload your own" + close (ESC + backdrop click). Auto-saves on selection.
 - Default avatar removed: `public/avatars/default.svg` deleted, `DEFAULT_AVATAR` constant gone, picker no longer renders it.

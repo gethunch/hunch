@@ -114,5 +114,26 @@ ASCII only, alphanumerics + underscore, 3–20 chars.
 
 **Why:** Free and supported out of the box; rolling our own would require picking an SMTP provider (Resend, Mailgun, etc.) and is not blocking v1. Email template can be customised later in Supabase Studio.
 
+## 2026-05-16 — Contest slug format `weekly-pick-5-DD-mon-YY`
+Human-readable identifier for a contest. Stored as a unique column on `contests`, derived deterministically from `(format, period_start)`:
+
+- format `weekly_pick_5` → `weekly-pick-5`
+- date `2026-05-18` → `18-may-26`
+- combined → `weekly-pick-5-18-may-26`
+
+Helper: `contestSlug({ format, periodStart })` in `lib/constants.ts`.
+
+**Why:** UUIDs are unshareable. Hand-rolled slugs read naturally in `/contests/<slug>` URLs and let users scan a list of past contests by date. The format prefix leaves room for future contest formats without slug collisions. Pure function — no DB calls, regeneratable any time, backfilled on existing rows via `to_char(period_start, 'DD-Mon-YY')`.
+
+## 2026-05-16 — Seed past-contest history with real Yahoo prices, fake Indian-named users
+`scripts/seed-history.ts` + `npm run seed:history` builds 6 weeks of fully-resolved contests with ~60 entries each. Names come from a curated Indian-names pool (`scripts/_data/indian-names.ts`). Phones in the `+91 70000000XXX` range (impossible for real Indian numbers, which never start with 7-0-0-0-0-0-0-0-0). Real Yahoo Finance open/close prices for each Monday/Friday.
+
+**Why:** The `/contests` and per-contest pages need lived-in data to look honest. A leaderboard with two rows screams "demo". Real prices mean returns and rating deltas distribute realistically. Seed is fully idempotent: re-running wipes prior seed contests + seed users and re-builds from scratch.
+
+## 2026-05-16 — `/contest` (singular) redirects to current active contest
+After the contests UI revamp, the canonical URL is `/contests/[slug]`. The old `/contest` route stays as a 307 redirect to whichever contest is live (or upcoming if none live).
+
+**Why:** Doesn't break existing links / nav cache during deploy. Cheap aliasing without ambiguity.
+
 ## 2026-05-15 — Phone change UI deferred
 v1 enforces phone uniqueness at signup, but the profile shows phone as read-only. Changing phone requires OTP-to-new-number + Supabase auth sync + `users.phone` update — non-trivial, low-frequency, and not needed for launch.
