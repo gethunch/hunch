@@ -22,6 +22,11 @@ export async function completeOnboarding(
   const me = await getCurrentUser();
   if (!me) return { error: "Not signed in" };
   if (me.onboarded) return { error: "Already onboarded" };
+  // Defense in depth: username is immutable once set. The onboarded gate
+  // above should already cover this (you can't be onboarded without a
+  // username), but a second explicit check keeps the invariant from drifting
+  // if a future refactor splits the two states.
+  if (me.username) return { error: "Username already set" };
 
   const firstName = trimString(formData.get("firstName"), 40);
   const lastName = trimString(formData.get("lastName"), 40);

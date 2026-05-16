@@ -26,16 +26,28 @@ export const getCurrentUser = cache(async (): Promise<AppUser | null> => {
     .limit(1);
   if (existing[0]) return existing[0];
 
-  // First-time sign-in — stub row; the user completes their profile at /onboarding.
-  const [created] = await db
+  // First-time sign-in — stub row; the user completes their profile at
+  // /onboarding. Two parallel page renders both reach this point with no
+  // existing row; onConflictDoNothing makes the INSERT idempotent at the PK
+  // level. If we got nothing back (the other request inserted first), we
+  // re-SELECT to read whatever they wrote.
+  const inserted = await db
     .insert(users)
     .values({
       id: authUser.id,
       phone: authUser.phone ?? "",
     })
+    .onConflictDoNothing({ target: users.id })
     .returning();
 
-  return created;
+  if (inserted[0]) return inserted[0];
+
+  const reread = await db
+    .select()
+    .from(users)
+    .where(eq(users.id, authUser.id))
+    .limit(1);
+  return reread[0] ?? null;
 });
 
 export async function getUserById(id: string): Promise<AppUser | null> {
