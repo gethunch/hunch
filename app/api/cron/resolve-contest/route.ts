@@ -117,7 +117,21 @@ export async function GET(request: Request) {
 
   const total = computed.length;
 
-  await db.transaction(async (tx) => {
+  const skipped = await db.transaction(async (tx) => {
+    // Re-select the contest with a row lock. Two cron invocations racing on
+    // the same contest both reach this point; the first acquires the lock,
+    // the second blocks until the first commits, then re-reads status as
+    // 'resolved' and bails — preventing double-credited ratings.
+    const locked = await tx
+      .select({ status: contests.status })
+      .from(contests)
+      .where(eq(contests.id, contest.id))
+      .limit(1)
+      .for("update");
+    if (!locked[0] || locked[0].status !== "live") {
+      return "already-resolved" as const;
+    }
+
     // Stamp exit_price on every pick.
     for (const c of computed) {
       for (const p of c.picks) {
@@ -209,7 +223,16 @@ export async function GET(request: Request) {
         status: "open",
       });
     }
+    return "resolved" as const;
   });
+
+  if (skipped === "already-resolved") {
+    return NextResponse.json({
+      ok: true,
+      contest_id: contest.id,
+      reason: "already resolved by concurrent worker",
+    });
+  }
 
   return NextResponse.json({
     ok: true,
