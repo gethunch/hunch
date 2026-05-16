@@ -31,10 +31,10 @@ export default async function AppLayout({
             Contests
           </Link>
           <Link
-            href="/leaderboard"
+            href="/rating"
             className="text-zinc-300 hover:text-white transition-colors"
           >
-            Leaderboard
+            Rating
           </Link>
           <Link
             href="/rules"

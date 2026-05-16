@@ -114,6 +114,47 @@ export async function searchUsers(
     .limit(limit);
 }
 
+export interface UserRatingAggregates {
+  peak: number;
+  lastDelta: number;
+}
+
+export async function getUserRatingAggregates(
+  userIds: string[],
+): Promise<Map<string, UserRatingAggregates>> {
+  if (userIds.length === 0) return new Map();
+  const rows = await db
+    .select({
+      userId: ratingHistory.userId,
+      ratingAfter: ratingHistory.ratingAfter,
+      delta: ratingHistory.delta,
+      createdAt: ratingHistory.createdAt,
+    })
+    .from(ratingHistory)
+    .where(inArray(ratingHistory.userId, userIds))
+    .orderBy(ratingHistory.createdAt);
+
+  const peakByUser = new Map<string, number>();
+  const lastDeltaByUser = new Map<string, number>();
+  for (const r of rows) {
+    const currentPeak = peakByUser.get(r.userId);
+    if (currentPeak === undefined || r.ratingAfter > currentPeak) {
+      peakByUser.set(r.userId, r.ratingAfter);
+    }
+    // ASC order, so last write wins for lastDelta
+    lastDeltaByUser.set(r.userId, r.delta);
+  }
+  const result = new Map<string, UserRatingAggregates>();
+  for (const id of userIds) {
+    const peak = peakByUser.get(id);
+    const lastDelta = lastDeltaByUser.get(id);
+    if (peak !== undefined && lastDelta !== undefined) {
+      result.set(id, { peak, lastDelta });
+    }
+  }
+  return result;
+}
+
 export interface RatingHistoryPoint {
   date: Date;
   ratingAfter: number;

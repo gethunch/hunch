@@ -72,7 +72,7 @@ function Hero({ thisWeekSlug }: { thisWeekSlug: string | null }) {
           {thisWeekSlug ? "Enter this contest →" : "Browse contests →"}
         </Link>
         <Link
-          href="/leaderboard"
+          href="/rating"
           className="text-sm text-zinc-400 hover:text-zinc-200 transition-colors"
         >
           See the ladder →
@@ -149,10 +149,10 @@ function TopRatedSection({
       <div className="flex items-baseline justify-between">
         <SectionLabel>Top rated</SectionLabel>
         <Link
-          href="/leaderboard"
+          href="/rating"
           className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors"
         >
-          Full leaderboard →
+          Full ratings →
         </Link>
       </div>
       <ol className="border border-zinc-900 rounded-lg divide-y divide-zinc-900">
