@@ -137,3 +137,13 @@ After the contests UI revamp, the canonical URL is `/contests/[slug]`. The old `
 
 ## 2026-05-15 — Phone change UI deferred
 v1 enforces phone uniqueness at signup, but the profile shows phone as read-only. Changing phone requires OTP-to-new-number + Supabase auth sync + `users.phone` update — non-trivial, low-frequency, and not needed for launch.
+
+## 2026-05-16 — Contest format roadmap: pick-5 → fixed-alloc → daily → open-trade
+Locked phasing for how contest formats expand post-v1. Every new format goes through the same `format` text column on `contests` and reuses the rating engine.
+
+- **V1 (now): `weekly_pick_5`** — current spec. 5 stocks, equal weight, no shorts, no mid-week trading. Submit before Monday open, resolves Friday close. Free weekly open+close prices. Ships and proves the rating signal works.
+- **V2: `weekly_alloc_10k`** — fixed ₹10k bankroll, 5 stocks with custom allocation (e.g. 40/30/15/10/5). Still no mid-week buy/sell, still resolves on Friday close. Same data infra as V1 (single open+close per stock per week). Tests appetite for allocation control without doubling complexity.
+- **V3: `daily_pick_5` / `daily_alloc`** — daily cadence on the same shape. More market-data calls but no live intraday quotes; still uses open+close per day. Builds the engagement loop without trading complexity.
+- **V4 (the "ideal"): `open_trade_X`** — fixed bankroll, full intraday buy/sell, winner is highest portfolio value at close. Requires live data feeds (paid or carefully rate-limited), an order book / position model, market-hours gating, and a rating math rework (percentile-of-return alone rewards concentration, so V4 needs risk-adjustment or position caps before launch).
+
+**Why:** Open-trade is the destination users have asked for, but pulling it forward to V1/V2 multiplies build cost ~10x, breaks the rating math, and commoditises the product (it becomes Moneybhai / Investopedia simulator — a saturated category in India). Pick-5 is the differentiator at V1 precisely because it strips away allocation and timing, isolating one skill (selection). Each step in the roadmap reuses the previous step's infra and either tests one new product dimension or unlocks one new technical capability. The schema's `format` column and the "Coming formats" section on `/rules` already leave the door open; no v1 code needs to change to keep this future possible.
