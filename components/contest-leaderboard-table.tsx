@@ -78,7 +78,7 @@ function Row({
 
   return (
     <details className={isMe ? "bg-zinc-900/40" : ""}>
-      <summary className="flex items-center gap-4 px-4 py-3 cursor-pointer list-none hover:bg-zinc-950">
+      <summary className="flex items-center gap-4 px-4 py-3 cursor-pointer list-none hover:bg-zinc-900">
         <span className="text-sm tabular-nums text-zinc-500 w-7">
           {row.rank}
         </span>

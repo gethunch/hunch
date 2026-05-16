@@ -166,7 +166,7 @@ function TopRatedSection({
             <li key={u.id}>
               <Link
                 href={href}
-                className="flex items-center gap-4 px-4 py-3 hover:bg-zinc-950 transition-colors"
+                className="flex items-center gap-4 px-4 py-3 hover:bg-zinc-900 transition-colors"
               >
                 <span className="text-sm tabular-nums text-zinc-500 w-5">
                   {i + 1}

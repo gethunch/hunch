@@ -6,11 +6,6 @@ const MONTHS_SHORT = [
   "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
 ] as const;
 
-export function formatLabel(format: string): string {
-  if (format === "weekly_pick_5") return "Weekly Pick 5";
-  return format;
-}
-
 // "2026-05-18" → "18 May '26"
 export function formatPeriod(periodStart: string): string {
   const [y, m, d] = periodStart.split("-").map((s) => parseInt(s, 10));

@@ -259,7 +259,7 @@ function UserRow({
         href={href}
         className={
           "flex items-center gap-4 px-4 py-3 transition-colors " +
-          (isMe ? "bg-zinc-900/50" : "hover:bg-zinc-950")
+          (isMe ? "bg-zinc-900/50" : "hover:bg-zinc-900")
         }
       >
         {rank !== null && (

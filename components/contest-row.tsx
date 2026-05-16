@@ -21,7 +21,7 @@ export function ContestRow({ contest, tone, myResult }: Props) {
   return (
     <Link
       href={`/contests/${contest.slug}`}
-      className="block border border-zinc-900 rounded-lg p-4 hover:bg-zinc-950 transition-colors"
+      className="block border border-zinc-900 rounded-lg p-4 hover:bg-zinc-900 transition-colors"
     >
       <div className="flex items-center gap-4">
         <div className="flex-1 min-w-0 space-y-1.5">

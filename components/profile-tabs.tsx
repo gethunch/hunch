@@ -98,7 +98,7 @@ export function ProfileTabs({
                 <li key={e.entryId}>
                   <Link
                     href={`/contests/${e.contestSlug}`}
-                    className="block border border-zinc-900 rounded-md p-4 hover:bg-zinc-950 transition-colors"
+                    className="block border border-zinc-900 rounded-md p-4 hover:bg-zinc-900 transition-colors"
                   >
                   <div className="flex items-baseline justify-between mb-3">
                     <span className="text-sm font-medium">
