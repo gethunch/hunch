@@ -107,6 +107,62 @@ export async function getContestLeaderboard(
     );
 }
 
+export interface ContestEntryWithUser {
+  entryId: string;
+  userId: string;
+  submittedAt: Date;
+  firstName: string | null;
+  lastName: string | null;
+  username: string | null;
+  avatarUrl: string | null;
+}
+
+export async function getContestEntriesWithUsers(
+  contestId: string,
+): Promise<ContestEntryWithUser[]> {
+  return await db
+    .select({
+      entryId: entries.id,
+      userId: users.id,
+      submittedAt: entries.submittedAt,
+      firstName: users.firstName,
+      lastName: users.lastName,
+      username: users.username,
+      avatarUrl: users.avatarUrl,
+    })
+    .from(entries)
+    .innerJoin(users, eq(entries.userId, users.id))
+    .where(eq(entries.contestId, contestId))
+    .orderBy(asc(entries.submittedAt));
+}
+
+export interface LivePick {
+  symbol: string;
+  entryPrice: number;
+}
+
+export async function getContestLivePicks(
+  contestId: string,
+): Promise<Map<string, LivePick[]>> {
+  const rows = await db
+    .select({
+      entryId: entryPicks.entryId,
+      symbol: entryPicks.symbol,
+      entryPrice: entryPicks.entryPrice,
+    })
+    .from(entryPicks)
+    .innerJoin(entries, eq(entryPicks.entryId, entries.id))
+    .where(eq(entries.contestId, contestId));
+  const map = new Map<string, LivePick[]>();
+  for (const r of rows) {
+    if (r.entryPrice == null) continue;
+    const list = map.get(r.entryId) ?? [];
+    list.push({ symbol: r.symbol, entryPrice: r.entryPrice });
+    map.set(r.entryId, list);
+  }
+  return map;
+}
+
 export interface PickWithReturn {
   symbol: string;
   entryPrice: number;
