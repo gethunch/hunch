@@ -9,6 +9,7 @@ import {
   getUpcomingContests,
 } from "@/lib/repository/contests";
 import { ContestCountdown } from "@/components/contest-countdown";
+import { HunchLogo, HunchMark } from "@/components/hunch-mark";
 import { resolveAvatarUrl } from "@/lib/avatars";
 import { NIFTY_50 } from "@/lib/constants";
 import {
@@ -29,92 +30,91 @@ export default async function Home() {
   ]);
 
   const thisWeek = live[0] ?? upcoming[0] ?? null;
+  const isLive = !!(live[0] && thisWeek && live[0].id === thisWeek.id);
   const lastWeek = past[0] ?? null;
   const lastWeekStats = lastWeek ? await getContestStats(lastWeek.id) : null;
 
   return (
     <>
-      <header className="border-b border-zinc-900">
-        <div className="max-w-3xl mx-auto px-6 py-4 flex items-center justify-between">
-          <Link
-            href="/"
-            className="text-base font-medium tracking-tight hover:text-zinc-300 transition-colors"
-          >
-            Hunch
-          </Link>
-          <Link
-            href="/login"
-            className="text-sm text-zinc-300 hover:text-white border border-zinc-800 hover:border-zinc-600 rounded-md px-3 py-1.5 transition-colors"
-          >
-            Sign in
-          </Link>
-        </div>
-      </header>
-
-      <main className="max-w-3xl mx-auto px-6 py-16 space-y-20">
+      <TopBar />
+      <main>
         <Hero />
-
-        {thisWeek && (
-          <ThisWeekSection
-            contest={thisWeek}
-            isLive={live[0]?.id === thisWeek.id}
-          />
-        )}
-
-        {top.length > 0 && <TopRatedSection users={top} />}
-
-        {lastWeek && lastWeekStats && (
-          <LastWeekSection contest={lastWeek} stats={lastWeekStats} />
-        )}
-
-        <HowItWorksSection />
-
+        <div className="max-w-3xl mx-auto px-6 space-y-24 pb-32">
+          {thisWeek && (
+            <ThisWeekSection contest={thisWeek} isLive={isLive} />
+          )}
+          {top.length > 0 && <TopRatedSection users={top} />}
+          {lastWeek && lastWeekStats && (
+            <LastWeekSection contest={lastWeek} stats={lastWeekStats} />
+          )}
+          <ComingSoonSection />
+          <HowItWorksSection />
+        </div>
         <Footer />
       </main>
     </>
   );
 }
 
-function Hero() {
+function TopBar() {
   return (
-    <section className="text-center space-y-6 pt-8 pb-4">
-      <h1 className="text-5xl sm:text-6xl font-medium tracking-tight">
-        Got a hunch? Prove it.
-      </h1>
-      <p className="text-zinc-400 text-lg max-w-xl mx-auto">
-        Pick 5 stocks every Monday. Earn a rating that tracks your skill at
-        picking NIFTY 50 winners.
-      </p>
-      <div className="pt-2">
+    <header className="border-b border-zinc-900">
+      <div className="max-w-3xl mx-auto px-6 py-4 flex items-center justify-between">
+        <Link
+          href="/"
+          className="text-zinc-100 hover:text-white transition-colors"
+        >
+          <HunchLogo size={22} />
+        </Link>
         <Link
           href="/login"
-          className="inline-block bg-white text-black rounded-md px-6 py-3 text-base font-medium"
+          className="text-sm text-zinc-300 hover:text-white border border-zinc-800 hover:border-zinc-600 rounded-md px-3 py-1.5 transition-colors"
+        >
+          Sign in
+        </Link>
+      </div>
+    </header>
+  );
+}
+
+function Hero() {
+  return (
+    <section className="max-w-3xl mx-auto px-6 pt-24 pb-32 sm:pt-32 sm:pb-40 text-center">
+      <div className="flex justify-center mb-10 text-zinc-100">
+        <HunchMark size={64} withFrame />
+      </div>
+      <h1 className="text-5xl sm:text-7xl font-medium tracking-tight leading-[1.05]">
+        Got a hunch?
+        <br />
+        <span className="text-zinc-500">Prove it.</span>
+      </h1>
+      <p className="text-lg sm:text-xl text-zinc-400 mt-8 max-w-xl mx-auto leading-relaxed">
+        Pick 5 NIFTY 50 stocks every Monday. Earn a rating that tracks your
+        skill. No money. No noise.
+      </p>
+      <div className="mt-12 flex items-center justify-center gap-4">
+        <Link
+          href="/login"
+          className="inline-block bg-white text-black rounded-md px-6 py-3 text-base font-medium hover:bg-zinc-200 transition-colors"
         >
           Sign in to play
         </Link>
+        <Link
+          href="/contests"
+          className="text-sm text-zinc-400 hover:text-zinc-200 transition-colors"
+        >
+          Browse contests →
+        </Link>
       </div>
-      <div className="flex items-center justify-center gap-2 sm:gap-3 text-xs uppercase tracking-wide text-zinc-500 pt-6">
-        <Step n={1} label="Pick" />
-        <Arrow />
-        <Step n={2} label="Wait" />
-        <Arrow />
-        <Step n={3} label="Rate" />
+      <div className="flex items-center justify-center gap-3 text-xs uppercase tracking-wide text-zinc-600 mt-16">
+        <span className="text-zinc-400">Pick</span>
+        <span className="text-zinc-800">→</span>
+        <span className="text-zinc-400">Wait</span>
+        <span className="text-zinc-800">→</span>
+        <span className="text-zinc-400">Rate</span>
       </div>
     </section>
   );
-}
-
-function Step({ n, label }: { n: number; label: string }) {
-  return (
-    <span className="inline-flex items-baseline gap-2">
-      <span className="text-zinc-700 tabular-nums">{n}</span>
-      <span className="text-zinc-400">{label}</span>
-    </span>
-  );
-}
-
-function Arrow() {
-  return <span className="text-zinc-800">→</span>;
 }
 
 function ThisWeekSection({
@@ -125,9 +125,9 @@ function ThisWeekSection({
   isLive: boolean;
 }) {
   return (
-    <section className="space-y-3">
+    <section className="space-y-4">
       <SectionLabel>This week</SectionLabel>
-      <div className="border border-zinc-900 rounded-lg p-6 space-y-4">
+      <div className="border border-zinc-900 rounded-lg p-6 sm:p-8 space-y-5">
         <div className="flex items-center gap-2 text-xs uppercase tracking-wide">
           {isLive ? (
             <span className="inline-flex items-center gap-1.5 text-emerald-400">
@@ -135,17 +135,19 @@ function ThisWeekSection({
               Live
             </span>
           ) : (
-            <span className="text-zinc-300">Open</span>
+            <span className="text-zinc-300">Open for entries</span>
           )}
           <span className="text-zinc-700">·</span>
           <span className="text-zinc-500">
             {formatLabel(contest.format)} · {formatPeriod(contest.periodStart)}
           </span>
         </div>
-        <div className="space-y-1">
-          <p className="text-sm tabular-nums text-zinc-300">
+        <div className="space-y-2">
+          <p className="text-2xl sm:text-3xl font-medium tabular-nums">
             {contest.entryCount}{" "}
-            {contest.entryCount === 1 ? "entry" : "entries"} so far
+            <span className="text-zinc-500 text-base font-normal">
+              {contest.entryCount === 1 ? "entry" : "entries"} so far
+            </span>
           </p>
           <ContestCountdown
             locksAtISO={
@@ -157,7 +159,7 @@ function ThisWeekSection({
         </div>
         <Link
           href={`/login?next=/contests/${contest.slug}`}
-          className="inline-block text-sm bg-white text-black rounded-md px-4 py-2 font-medium"
+          className="inline-block text-sm bg-white text-black rounded-md px-4 py-2 font-medium hover:bg-zinc-200 transition-colors"
         >
           {isLive ? "See live standings →" : "Enter this contest →"}
         </Link>
@@ -172,7 +174,7 @@ function TopRatedSection({
   users: Awaited<ReturnType<typeof getTopUsers>>;
 }) {
   return (
-    <section className="space-y-3">
+    <section className="space-y-4">
       <div className="flex items-baseline justify-between">
         <SectionLabel>Top rated</SectionLabel>
         <Link
@@ -201,8 +203,8 @@ function TopRatedSection({
                 <Image
                   src={resolveAvatarUrl(u.avatarUrl, u.id)}
                   alt=""
-                  width={28}
-                  height={28}
+                  width={32}
+                  height={32}
                   unoptimized
                   className="rounded-full border border-zinc-800 shrink-0"
                 />
@@ -238,9 +240,9 @@ function LastWeekSection({
     ? NIFTY_50.find((s) => s.symbol === topPick.symbol)?.name
     : null;
   return (
-    <section className="space-y-3">
+    <section className="space-y-4">
       <SectionLabel>Last week</SectionLabel>
-      <div className="border border-zinc-900 rounded-lg p-6 space-y-4">
+      <div className="border border-zinc-900 rounded-lg p-6 sm:p-8 space-y-5">
         <div className="flex items-center gap-2 text-xs uppercase tracking-wide">
           <span className="text-zinc-500">Final</span>
           <span className="text-zinc-700">·</span>
@@ -270,9 +272,7 @@ function LastWeekSection({
         {topPick && (
           <p className="text-sm text-zinc-400">
             Most picked:{" "}
-            <span className="text-zinc-200 tabular-nums">
-              {topPick.symbol}
-            </span>
+            <span className="text-zinc-200 tabular-nums">{topPick.symbol}</span>
             {topPickName && (
               <span className="text-zinc-500"> ({topPickName})</span>
             )}{" "}
@@ -308,7 +308,7 @@ function Stat({
         ? "text-red-400"
         : "text-zinc-100";
   return (
-    <div className="bg-black p-3">
+    <div className="bg-black p-4">
       <p className="text-[10px] uppercase tracking-wide text-zinc-500 mb-1">
         {label}
       </p>
@@ -319,25 +319,82 @@ function Stat({
   );
 }
 
+interface UpcomingFeature {
+  title: string;
+  description: string;
+}
+
+const UPCOMING: UpcomingFeature[] = [
+  {
+    title: "Daily contests",
+    description:
+      "A faster 1-day pick-one format alongside the weekly ladder. More chances to play, separate rating.",
+  },
+  {
+    title: "Live rank alerts",
+    description:
+      "Mid-week SMS digests when your rank moves. Find out you climbed from 14 → 4 without checking.",
+  },
+  {
+    title: "Rating tiers",
+    description:
+      "Color-coded titles — Pupil, Specialist, Expert, Master, Grandmaster. Status that scans at a glance.",
+  },
+  {
+    title: "Share cards",
+    description:
+      "One-tap WhatsApp / X share for your weekly picks and your final result. Drag a friend in.",
+  },
+  {
+    title: "Private leagues",
+    description:
+      "Invite-only contests where you compete just with your office or college group.",
+  },
+];
+
+function ComingSoonSection() {
+  return (
+    <section className="space-y-4">
+      <SectionLabel>Coming soon</SectionLabel>
+      <ul className="border border-zinc-900 rounded-lg divide-y divide-zinc-900">
+        {UPCOMING.map((f) => (
+          <li
+            key={f.title}
+            className="px-4 sm:px-5 py-4 flex items-start gap-4"
+          >
+            <div className="flex-1 min-w-0 space-y-1">
+              <h3 className="text-sm font-medium text-zinc-200">{f.title}</h3>
+              <p className="text-sm text-zinc-500 leading-relaxed">
+                {f.description}
+              </p>
+            </div>
+            <span className="shrink-0 text-[10px] uppercase tracking-wide text-zinc-500 border border-zinc-800 rounded-full px-2 py-0.5 mt-0.5">
+              Soon
+            </span>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
 function HowItWorksSection() {
   return (
     <section className="space-y-4">
       <SectionLabel>How it works</SectionLabel>
-      <div className="space-y-4 text-sm text-zinc-400 leading-relaxed">
+      <div className="space-y-4 text-sm text-zinc-400 leading-relaxed max-w-xl">
         <p>
-          Every Monday at 9:15 IST, a fresh contest opens. You pick 5 NIFTY 50
-          stocks. Equal weight, no shorts, no allocation. Friday close, the
-          contest resolves on portfolio return.
+          Every Monday at 9:15 IST, a fresh contest opens. Pick 5 NIFTY 50
+          stocks — equal weight, no shorts. Friday close, the contest resolves
+          on portfolio return.
         </p>
         <p>
-          You earn a rating delta based on where you finish. Top 1% gets +50,
-          median is 0, bottom 1% is −50. Higher-rated players gain less for the
-          same finish — the ladder gets steeper at the top.
+          Top 1% gets +50 rating. Median is 0. Bottom 1% is −50. Higher-rated
+          players earn less for the same finish — the ladder gets steeper at
+          the top.
         </p>
-        <p>
-          No real money. No prizes. The rating <span className="text-zinc-200">is</span>{" "}
-          the reward — a portable, honest measure of your skill at picking
-          stocks.
+        <p className="text-zinc-300">
+          No real money. No prizes. The rating is the reward.
         </p>
       </div>
     </section>
@@ -346,7 +403,7 @@ function HowItWorksSection() {
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
-    <h2 className="text-xs uppercase tracking-wide text-zinc-500 border-b border-zinc-900 pb-1">
+    <h2 className="text-xs uppercase tracking-wide text-zinc-500 border-b border-zinc-900 pb-2">
       {children}
     </h2>
   );
@@ -354,10 +411,14 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
 
 function Footer() {
   return (
-    <footer className="pt-12 border-t border-zinc-900 text-center">
-      <p className="text-xs text-zinc-700">
-        Hunch — skill-rated stock prediction. Got a hunch? Prove it.
-      </p>
+    <footer className="border-t border-zinc-900 py-10">
+      <div className="max-w-3xl mx-auto px-6 flex items-center justify-between text-xs text-zinc-600">
+        <span className="inline-flex items-center gap-2">
+          <HunchMark size={14} />
+          <span>Skill-rated stock prediction.</span>
+        </span>
+        <span>© 2026</span>
+      </div>
     </footer>
   );
 }

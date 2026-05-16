@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { getCurrentUser } from "@/lib/repository/users";
 import { resolveAvatarUrl } from "@/lib/avatars";
+import { HunchMark } from "@/components/hunch-mark";
 import { signOut } from "./actions";
 
 export default async function AppLayout({
@@ -16,6 +17,13 @@ export default async function AppLayout({
     <>
       <nav className="border-b border-zinc-900">
         <div className="max-w-3xl mx-auto px-6 py-3 flex items-center gap-6 text-sm">
+          <Link
+            href="/"
+            className="text-zinc-100 hover:text-zinc-300 transition-colors"
+            aria-label="Hunch home"
+          >
+            <HunchMark size={22} />
+          </Link>
           <Link
             href="/contests"
             className="text-zinc-300 hover:text-white transition-colors"

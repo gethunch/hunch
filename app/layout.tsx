@@ -13,8 +13,12 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Hunch",
-  description: "Got a hunch? Prove it.",
+  title: {
+    default: "Hunch — Got a hunch? Prove it.",
+    template: "%s · Hunch",
+  },
+  description:
+    "Weekly NIFTY 50 stock-prediction contest. Pick 5, earn a rating that tracks your skill.",
 };
 
 export default function RootLayout({
