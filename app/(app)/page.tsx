@@ -1,7 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { redirect } from "next/navigation";
-import { getCurrentUser, getTopUsers } from "@/lib/repository/users";
+import { getTopUsers } from "@/lib/repository/users";
 import {
   getContestStats,
   getLiveContests,
@@ -9,7 +8,7 @@ import {
   getUpcomingContests,
 } from "@/lib/repository/contests";
 import { ContestCountdown } from "@/components/contest-countdown";
-import { HunchLogo, HunchMark } from "@/components/hunch-mark";
+import { HunchMark } from "@/components/hunch-mark";
 import { resolveAvatarUrl } from "@/lib/avatars";
 import { NIFTY_50 } from "@/lib/constants";
 import {
@@ -19,9 +18,6 @@ import {
 } from "@/lib/contest-display";
 
 export default async function Home() {
-  const me = await getCurrentUser();
-  if (me) redirect("/contests");
-
   const [live, upcoming, past, top] = await Promise.all([
     getLiveContests(),
     getUpcomingContests(),
@@ -35,49 +31,25 @@ export default async function Home() {
   const lastWeekStats = lastWeek ? await getContestStats(lastWeek.id) : null;
 
   return (
-    <>
-      <TopBar />
-      <main>
-        <Hero />
-        <div className="max-w-3xl mx-auto px-6 space-y-24 pb-32">
-          {thisWeek && (
-            <ThisWeekSection contest={thisWeek} isLive={isLive} />
-          )}
-          {top.length > 0 && <TopRatedSection users={top} />}
-          {lastWeek && lastWeekStats && (
-            <LastWeekSection contest={lastWeek} stats={lastWeekStats} />
-          )}
-          <ComingSoonSection />
-          <HowItWorksSection />
-        </div>
-        <Footer />
-      </main>
-    </>
-  );
-}
-
-function TopBar() {
-  return (
-    <header className="border-b border-zinc-900">
-      <div className="max-w-3xl mx-auto px-6 py-4 flex items-center justify-between">
-        <Link
-          href="/"
-          className="text-zinc-100 hover:text-white transition-colors"
-        >
-          <HunchLogo size={22} />
-        </Link>
-        <Link
-          href="/login"
-          className="text-sm text-zinc-300 hover:text-white border border-zinc-800 hover:border-zinc-600 rounded-md px-3 py-1.5 transition-colors"
-        >
-          Sign in
-        </Link>
+    <main>
+      <Hero thisWeekSlug={thisWeek?.slug ?? null} />
+      <div className="max-w-3xl mx-auto px-6 space-y-24 pb-32">
+        {thisWeek && (
+          <ThisWeekSection contest={thisWeek} isLive={isLive} />
+        )}
+        {top.length > 0 && <TopRatedSection users={top} />}
+        {lastWeek && lastWeekStats && (
+          <LastWeekSection contest={lastWeek} stats={lastWeekStats} />
+        )}
+        <ComingSoonSection />
+        <HowItWorksSection />
       </div>
-    </header>
+      <Footer />
+    </main>
   );
 }
 
-function Hero() {
+function Hero({ thisWeekSlug }: { thisWeekSlug: string | null }) {
   return (
     <section className="max-w-3xl mx-auto px-6 pt-24 pb-32 sm:pt-32 sm:pb-40 text-center">
       <div className="flex justify-center mb-10 text-zinc-100">
@@ -89,21 +61,21 @@ function Hero() {
         <span className="text-zinc-500">Prove it.</span>
       </h1>
       <p className="text-lg sm:text-xl text-zinc-400 mt-8 max-w-xl mx-auto leading-relaxed">
-        Pick 5 NIFTY 50 stocks every Monday. Earn a rating that tracks your
-        skill. No money. No noise.
+        A skill-rated prediction ladder on Indian stocks. Enter each contest,
+        earn a rating that tracks your real skill. No money. No noise.
       </p>
       <div className="mt-12 flex items-center justify-center gap-4">
         <Link
-          href="/login"
+          href={thisWeekSlug ? `/contests/${thisWeekSlug}` : "/contests"}
           className="inline-block bg-white text-black rounded-md px-6 py-3 text-base font-medium hover:bg-zinc-200 transition-colors"
         >
-          Sign in to play
+          {thisWeekSlug ? "Enter this contest →" : "Browse contests →"}
         </Link>
         <Link
-          href="/contests"
+          href="/leaderboard"
           className="text-sm text-zinc-400 hover:text-zinc-200 transition-colors"
         >
-          Browse contests →
+          See the ladder →
         </Link>
       </div>
       <div className="flex items-center justify-center gap-3 text-xs uppercase tracking-wide text-zinc-600 mt-16">
@@ -126,7 +98,7 @@ function ThisWeekSection({
 }) {
   return (
     <section className="space-y-4">
-      <SectionLabel>This week</SectionLabel>
+      <SectionLabel>{isLive ? "Live now" : "Up next"}</SectionLabel>
       <div className="border border-zinc-900 rounded-lg p-6 sm:p-8 space-y-5">
         <div className="flex items-center gap-2 text-xs uppercase tracking-wide">
           {isLive ? (
@@ -158,7 +130,7 @@ function ThisWeekSection({
           />
         </div>
         <Link
-          href={`/login?next=/contests/${contest.slug}`}
+          href={`/contests/${contest.slug}`}
           className="inline-block text-sm bg-white text-black rounded-md px-4 py-2 font-medium hover:bg-zinc-200 transition-colors"
         >
           {isLive ? "See live standings →" : "Enter this contest →"}
@@ -241,7 +213,7 @@ function LastWeekSection({
     : null;
   return (
     <section className="space-y-4">
-      <SectionLabel>Last week</SectionLabel>
+      <SectionLabel>Last contest</SectionLabel>
       <div className="border border-zinc-900 rounded-lg p-6 sm:p-8 space-y-5">
         <div className="flex items-center gap-2 text-xs uppercase tracking-wide">
           <span className="text-zinc-500">Final</span>
@@ -326,14 +298,14 @@ interface UpcomingFeature {
 
 const UPCOMING: UpcomingFeature[] = [
   {
-    title: "Daily contests",
+    title: "More contest formats",
     description:
-      "A faster 1-day pick-one format alongside the weekly ladder. More chances to play, separate rating.",
+      "Daily picks, fixed-allocation portfolios, variable-N shortlists — same rating, different cadences.",
   },
   {
     title: "Live rank alerts",
     description:
-      "Mid-week SMS digests when your rank moves. Find out you climbed from 14 → 4 without checking.",
+      "Mid-contest digests when your rank shifts. Find out you climbed from 14 → 4 without checking.",
   },
   {
     title: "Rating tiers",
@@ -343,7 +315,7 @@ const UPCOMING: UpcomingFeature[] = [
   {
     title: "Share cards",
     description:
-      "One-tap WhatsApp / X share for your weekly picks and your final result. Drag a friend in.",
+      "One-tap WhatsApp / X share for your picks and your final result. Drag a friend in.",
   },
   {
     title: "Private leagues",
@@ -384,9 +356,9 @@ function HowItWorksSection() {
       <SectionLabel>How it works</SectionLabel>
       <div className="space-y-4 text-sm text-zinc-400 leading-relaxed max-w-xl">
         <p>
-          Every Monday at 9:15 IST, a fresh contest opens. Pick 5 NIFTY 50
-          stocks — equal weight, no shorts. Friday close, the contest resolves
-          on portfolio return.
+          Each contest opens, you submit your shortlist before lock time, then
+          wait for the market to do its thing. When it resolves, your portfolio
+          return ranks you against everyone who entered.
         </p>
         <p>
           Top 1% gets +50 rating. Median is 0. Bottom 1% is −50. Higher-rated
@@ -415,7 +387,7 @@ function Footer() {
       <div className="max-w-3xl mx-auto px-6 flex items-center justify-between text-xs text-zinc-600">
         <span className="inline-flex items-center gap-2">
           <HunchMark size={14} />
-          <span>Skill-rated stock prediction.</span>
+          <span>Skill-rated prediction. Got a hunch? Prove it.</span>
         </span>
         <span>© 2026</span>
       </div>

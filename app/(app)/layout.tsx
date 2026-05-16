@@ -16,10 +16,10 @@ export default async function AppLayout({
   return (
     <>
       <nav className="border-b border-zinc-900">
-        <div className="max-w-3xl mx-auto px-6 py-3 flex items-center gap-6 text-sm">
+        <div className="w-full px-6 sm:px-8 py-3 flex items-center gap-6 text-sm">
           <Link
             href="/"
-            className="text-zinc-100 hover:text-zinc-300 transition-colors"
+            className="text-zinc-100 hover:text-zinc-300 transition-colors mr-2"
             aria-label="Hunch home"
           >
             <HunchMark size={22} />
