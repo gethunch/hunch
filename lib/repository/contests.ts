@@ -1,8 +1,14 @@
-import { and, asc, desc, eq } from "drizzle-orm";
+import { and, asc, desc, eq, inArray } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { contests } from "@/lib/db/schema";
+import { contests, entries } from "@/lib/db/schema";
 
 export type Contest = typeof contests.$inferSelect;
+
+export interface ContestResultForUser {
+  rank: number;
+  finalReturn: number;
+  ratingDelta: number;
+}
 
 export async function getCurrentOpenContest(
   format: string,
@@ -61,4 +67,37 @@ export async function getCurrentActiveContest(): Promise<Contest | null> {
   if (live[0]) return live[0];
   const upcoming = await getUpcomingContests();
   return upcoming[0] ?? null;
+}
+
+// Bulk-fetch one user's results across a set of contests. Used by the
+// /contests index so each past row can show "you finished Xth · +Y" without
+// firing one query per contest.
+export async function getMyResultsForContests(
+  userId: string,
+  contestIds: string[],
+): Promise<Map<string, ContestResultForUser>> {
+  if (contestIds.length === 0) return new Map();
+  const rows = await db
+    .select({
+      contestId: entries.contestId,
+      finalRank: entries.finalRank,
+      finalReturn: entries.finalReturn,
+      ratingDelta: entries.ratingDelta,
+    })
+    .from(entries)
+    .where(
+      and(eq(entries.userId, userId), inArray(entries.contestId, contestIds)),
+    );
+  const map = new Map<string, ContestResultForUser>();
+  for (const r of rows) {
+    if (r.finalRank == null || r.finalReturn == null || r.ratingDelta == null) {
+      continue;
+    }
+    map.set(r.contestId, {
+      rank: r.finalRank,
+      finalReturn: r.finalReturn,
+      ratingDelta: r.ratingDelta,
+    });
+  }
+  return map;
 }

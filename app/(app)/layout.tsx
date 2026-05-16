@@ -16,10 +16,10 @@ export default async function AppLayout({
       <nav className="border-b border-zinc-900">
         <div className="max-w-3xl mx-auto px-6 py-3 flex items-center gap-6 text-sm">
           <Link
-            href="/contest"
+            href="/contests"
             className="text-zinc-300 hover:text-white transition-colors"
           >
-            Contest
+            Contests
           </Link>
           <Link
             href="/leaderboard"
