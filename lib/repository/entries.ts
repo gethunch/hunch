@@ -51,3 +51,22 @@ export async function submitEntry({
     return { entry, picks };
   });
 }
+
+// Replace an entry's 5 picks. Used by the "edit picks" flow before locksAt.
+// Leaves entry.submittedAt and contests.entry_count untouched.
+export async function updateEntry({
+  entryId,
+  symbols,
+}: {
+  entryId: string;
+  symbols: string[];
+}): Promise<EntryPick[]> {
+  return await db.transaction(async (tx) => {
+    await tx.delete(entryPicks).where(eq(entryPicks.entryId, entryId));
+    const picks = await tx
+      .insert(entryPicks)
+      .values(symbols.map((symbol) => ({ entryId, symbol })))
+      .returning();
+    return picks;
+  });
+}

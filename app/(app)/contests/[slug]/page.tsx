@@ -11,6 +11,7 @@ import {
   type LeaderboardRow,
   type PickWithReturn,
 } from "@/lib/repository/contests";
+import { getEntryForUser } from "@/lib/repository/entries";
 import {
   fetchIndexLastPrice,
   fetchLastPrices,
@@ -24,7 +25,9 @@ import {
 } from "@/components/contest-detail-header";
 import { ContestLeaderboardTable } from "@/components/contest-leaderboard-table";
 import { ContestCountdown } from "@/components/contest-countdown";
+import { EntryView } from "@/components/entry-view";
 import {
+  formatDayMonth,
   formatRatingDelta,
   formatReturnPct,
   formatTimeSince,
@@ -52,18 +55,69 @@ export default async function ContestDetailPage({
   if (contest.status === "live") {
     return <LiveView contest={contest} meId={me.id} />;
   }
+  return <OpenView contest={contest} meId={me.id} />;
+}
 
-  // Phase 15 (open / entry) lands next.
+async function OpenView({
+  contest,
+  meId,
+}: {
+  contest: NonNullable<Awaited<ReturnType<typeof getContestBySlug>>>;
+  meId: string;
+}) {
+  const existing = await getEntryForUser(contest.id, meId);
+  const existingPicks = existing ? existing.picks.map((p) => p.symbol) : null;
+  // status === "open" implies we're before locks_at; the cron flips status to
+  // "live" at lock time. The server action does its own Date.now() check at
+  // submit-time as the source of truth.
+  const canEdit = true;
+  const fridayDate = istFridayFor(contest.periodStart);
+
+  const statCells: StatCell[] = [
+    { label: "Entries so far", value: contest.entryCount.toString() },
+    { label: "Picks per entry", value: "5" },
+    { label: "Period start", value: formatDayMonth(contest.periodStart) },
+    { label: "Resolves", value: formatDayMonth(fridayDate) },
+  ];
+
   return (
-    <main className="max-w-3xl mx-auto px-6 py-10 space-y-4">
-      <h1 className="text-2xl font-medium">
-        Contest &quot;{slug}&quot; — {contest.status}
-      </h1>
-      <p className="text-sm text-zinc-500">
-        Entry flow lands in the next phase.
-      </p>
+    <main className="max-w-3xl mx-auto px-6 py-10 space-y-8">
+      <Link
+        href="/contests"
+        className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors"
+      >
+        ← All contests
+      </Link>
+
+      <ContestDetailHeader
+        contest={contest}
+        statusLabel="Open"
+        statusTone="open"
+        subtitle={
+          <ContestCountdown locksAtISO={contest.locksAt.toISOString()} />
+        }
+        stats={statCells}
+      />
+
+      <section className="space-y-3">
+        <h2 className="text-xs uppercase tracking-wide text-zinc-500 border-b border-zinc-900 pb-1">
+          {existingPicks ? "Your picks" : "Pick 5 stocks"}
+        </h2>
+        <EntryView
+          slug={contest.slug}
+          existingPicks={existingPicks}
+          canEdit={canEdit}
+        />
+      </section>
     </main>
   );
+}
+
+// "2026-05-18" → "2026-05-22" (Monday + 4 days).
+function istFridayFor(periodStart: string): string {
+  const d = new Date(`${periodStart}T12:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + 4);
+  return d.toISOString().slice(0, 10);
 }
 
 async function ResolvedView({

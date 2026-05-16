@@ -2,12 +2,32 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { submitContestEntry } from "@/app/(app)/contest/actions";
+import {
+  submitContestEntry,
+  updateContestEntry,
+  type SubmitResult,
+} from "@/app/(app)/contests/[slug]/actions";
 import { PICKS_PER_ENTRY, type Nifty50Stock } from "@/lib/constants";
 
-export function PickFive({ stocks }: { stocks: readonly Nifty50Stock[] }) {
+interface Props {
+  stocks: readonly Nifty50Stock[];
+  slug: string;
+  mode: "create" | "edit";
+  initialSymbols?: readonly string[];
+  onCancel?: () => void;
+}
+
+export function PickFive({
+  stocks,
+  slug,
+  mode,
+  initialSymbols = [],
+  onCancel,
+}: Props) {
   const router = useRouter();
-  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [selected, setSelected] = useState<Set<string>>(
+    () => new Set(initialSymbols),
+  );
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
@@ -32,8 +52,10 @@ export function PickFive({ stocks }: { stocks: readonly Nifty50Stock[] }) {
 
   function submit() {
     setError(null);
+    const action =
+      mode === "create" ? submitContestEntry : updateContestEntry;
     startTransition(async () => {
-      const result = await submitContestEntry(Array.from(selected));
+      const result: SubmitResult = await action(slug, Array.from(selected));
       if ("error" in result) {
         setError(result.error);
       } else {
@@ -44,9 +66,17 @@ export function PickFive({ stocks }: { stocks: readonly Nifty50Stock[] }) {
 
   const remaining = PICKS_PER_ENTRY - selected.size;
   const canSubmit = selected.size === PICKS_PER_ENTRY && !isPending;
+  const ctaLabel =
+    mode === "edit"
+      ? isPending
+        ? "…"
+        : "Save picks"
+      : isPending
+        ? "…"
+        : "Lock in";
 
   return (
-    <div className="space-y-6 pb-24">
+    <div className="space-y-6 pb-28">
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
         {stocks.map((s) => {
           const isSelected = selected.has(s.symbol);
@@ -84,14 +114,26 @@ export function PickFive({ stocks }: { stocks: readonly Nifty50Stock[] }) {
             </span>
           )}
         </div>
-        <button
-          type="button"
-          onClick={submit}
-          disabled={!canSubmit}
-          className="bg-white text-black rounded-md px-4 py-2 text-sm font-medium disabled:opacity-30"
-        >
-          {isPending ? "…" : "Lock in"}
-        </button>
+        <div className="flex items-center gap-2">
+          {onCancel && (
+            <button
+              type="button"
+              onClick={onCancel}
+              disabled={isPending}
+              className="text-xs text-zinc-400 hover:text-zinc-200 transition-colors px-3 py-2 disabled:opacity-50"
+            >
+              Cancel
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={submit}
+            disabled={!canSubmit}
+            className="bg-white text-black rounded-md px-4 py-2 text-sm font-medium disabled:opacity-30"
+          >
+            {ctaLabel}
+          </button>
+        </div>
       </div>
 
       {error && (
