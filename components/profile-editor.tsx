@@ -281,7 +281,7 @@ function EmailSection({
               <span
                 className={
                   "text-xs " +
-                  (savedVerified ? "text-emerald-400" : "text-amber-400")
+                  (savedVerified ? "text-emerald-400" : "text-zinc-500")
                 }
               >
                 {savedVerified ? "Verified" : "Pending verification"}

@@ -167,7 +167,7 @@ function AvatarModal({
                 className={
                   "aspect-square rounded-full overflow-hidden border-2 transition-colors " +
                   (selected
-                    ? "border-emerald-500"
+                    ? "border-zinc-100"
                     : "border-transparent hover:border-zinc-600")
                 }
                 aria-label={`Pick avatar ${p}`}

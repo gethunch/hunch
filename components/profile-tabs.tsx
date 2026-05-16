@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { RatingChart, type RatingPoint } from "@/components/rating-chart";
 import { ProfileEditor } from "@/components/profile-editor";
+import { formatPeriod } from "@/lib/contest-display";
 
 type Entry = {
   entryId: string;
@@ -60,7 +61,7 @@ export function ProfileTabs({
               className={
                 "pb-3 -mb-px text-sm transition-colors " +
                 (tab === t.id
-                  ? "text-zinc-100 border-b-2 border-emerald-500"
+                  ? "text-zinc-100 border-b-2 border-zinc-100"
                   : "text-zinc-500 hover:text-zinc-300")
               }
             >
@@ -101,7 +102,7 @@ export function ProfileTabs({
                   >
                   <div className="flex items-baseline justify-between mb-3">
                     <span className="text-sm font-medium">
-                      Week of {e.contestPeriodStart}
+                      Week of {formatPeriod(e.contestPeriodStart)}
                     </span>
                     {e.finalRank != null ? (
                       <span className="text-xs tabular-nums text-zinc-500">
