@@ -128,7 +128,7 @@ function HeroCard({ contest, isLive }: { contest: Contest; isLive: boolean }) {
       <div className="flex items-center gap-4 pt-2">
         <Link
           href={`/contests/${contest.slug}`}
-          className="inline-block bg-white text-black rounded-md px-5 py-2.5 text-sm font-medium hover:bg-zinc-200 transition-colors"
+          className="inline-block bg-white text-black focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-400 rounded-md px-5 py-2.5 text-sm font-medium hover:bg-zinc-200 transition-colors"
         >
           {isLive ? "See live standings →" : "Enter this contest →"}
         </Link>

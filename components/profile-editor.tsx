@@ -154,7 +154,7 @@ function NameSection({
               type="button"
               onClick={onSave}
               disabled={isPending}
-              className="text-xs px-3 py-1.5 bg-white hover:bg-zinc-200 disabled:bg-zinc-800 disabled:text-zinc-500 rounded text-black font-medium transition-colors"
+              className="text-xs px-3 py-1.5 bg-white hover:bg-zinc-200 disabled:bg-zinc-800 disabled:text-zinc-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-400 rounded text-black font-medium transition-colors"
             >
               {isPending ? "Saving…" : "Save"}
             </button>
@@ -258,7 +258,7 @@ function EmailSection({
               type="button"
               onClick={onSave}
               disabled={isPending}
-              className="text-xs px-3 py-1.5 bg-white hover:bg-zinc-200 disabled:bg-zinc-800 disabled:text-zinc-500 rounded text-black font-medium transition-colors"
+              className="text-xs px-3 py-1.5 bg-white hover:bg-zinc-200 disabled:bg-zinc-800 disabled:text-zinc-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-400 rounded text-black font-medium transition-colors"
             >
               {isPending ? "Saving…" : "Save"}
             </button>

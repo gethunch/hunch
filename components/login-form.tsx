@@ -101,7 +101,7 @@ export function LoginForm() {
       <button
         type="submit"
         disabled={isPending}
-        className="w-full bg-white text-black rounded-md px-3 py-2 font-medium disabled:opacity-50"
+        className="w-full bg-white text-black focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-400 rounded-md px-3 py-2 font-medium disabled:opacity-50"
       >
         {isPending
           ? "…"

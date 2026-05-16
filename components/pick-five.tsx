@@ -129,7 +129,7 @@ export function PickFive({
             type="button"
             onClick={submit}
             disabled={!canSubmit}
-            className="bg-white text-black rounded-md px-4 py-2 text-sm font-medium disabled:opacity-30"
+            className="bg-white text-black focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-400 rounded-md px-4 py-2 text-sm font-medium disabled:opacity-30"
           >
             {ctaLabel}
           </button>

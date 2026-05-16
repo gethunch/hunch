@@ -67,7 +67,7 @@ function Hero({ thisWeekSlug }: { thisWeekSlug: string | null }) {
       <div className="mt-12 flex items-center justify-center gap-4">
         <Link
           href={thisWeekSlug ? `/contests/${thisWeekSlug}` : "/contests"}
-          className="inline-block bg-white text-black rounded-md px-6 py-3 text-base font-medium hover:bg-zinc-200 transition-colors"
+          className="inline-block bg-white text-black focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-400 rounded-md px-6 py-3 text-base font-medium hover:bg-zinc-200 transition-colors"
         >
           {thisWeekSlug ? "Enter this contest →" : "Browse contests →"}
         </Link>
@@ -130,7 +130,7 @@ function ThisWeekSection({
         </div>
         <Link
           href={`/contests/${contest.slug}`}
-          className="inline-block text-sm bg-white text-black rounded-md px-4 py-2 font-medium hover:bg-zinc-200 transition-colors"
+          className="inline-block text-sm bg-white text-black focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-400 rounded-md px-4 py-2 font-medium hover:bg-zinc-200 transition-colors"
         >
           {isLive ? "See live standings →" : "Enter this contest →"}
         </Link>

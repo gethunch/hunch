@@ -155,7 +155,7 @@ function AuthPrompt({
       </div>
       <Link
         href={href}
-        className="inline-block text-sm bg-white text-black rounded-md px-4 py-2 font-medium"
+        className="inline-block text-sm bg-white text-black focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-400 rounded-md px-4 py-2 font-medium"
       >
         {ctaLabel}
       </Link>
