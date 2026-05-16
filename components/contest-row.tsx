@@ -1,12 +1,12 @@
 import Link from "next/link";
 import {
-  formatLabel,
   formatPeriod,
   formatRatingDelta,
   formatReturnPct,
   formatTimeSince,
   formatTimeUntil,
 } from "@/lib/contest-display";
+import { ContestFormatChips } from "@/components/contest-format-chips";
 import type { Contest, ContestResultForUser } from "@/lib/repository/contests";
 
 type Tone = "live" | "upcoming" | "past";
@@ -24,16 +24,14 @@ export function ContestRow({ contest, tone, myResult }: Props) {
       className="block border border-zinc-900 rounded-lg p-4 hover:bg-zinc-950 transition-colors"
     >
       <div className="flex items-center gap-4">
-        <div className="flex-1 min-w-0 space-y-1">
+        <div className="flex-1 min-w-0 space-y-1.5">
           <div className="flex items-center gap-2">
-            <h3 className="text-sm font-medium truncate">
-              {formatLabel(contest.format)} ·{" "}
-              <span className="text-zinc-400">
-                {formatPeriod(contest.periodStart)}
-              </span>
+            <h3 className="text-sm font-medium truncate text-zinc-100">
+              {formatPeriod(contest.periodStart)}
             </h3>
             <StatusPill tone={tone} />
           </div>
+          <ContestFormatChips format={contest.format} size="sm" />
           <p className="text-xs text-zinc-500 tabular-nums">
             <SubtitleByTone contest={contest} tone={tone} myResult={myResult} />
           </p>

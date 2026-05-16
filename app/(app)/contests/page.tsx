@@ -8,7 +8,8 @@ import {
 } from "@/lib/repository/contests";
 import { ContestCountdown } from "@/components/contest-countdown";
 import { ContestRow } from "@/components/contest-row";
-import { formatLabel, formatPeriod } from "@/lib/contest-display";
+import { ContestFormatChips } from "@/components/contest-format-chips";
+import { formatPeriod } from "@/lib/contest-display";
 import type { Contest } from "@/lib/repository/contests";
 
 export default async function ContestsPage() {
@@ -103,17 +104,10 @@ function HeroCard({ contest, isLive }: { contest: Contest; isLive: boolean }) {
           <span className="text-zinc-300">Open for entries</span>
         )}
         <span className="text-zinc-700">·</span>
-        <span className="text-zinc-500">
-          {formatLabel(contest.format)} · {formatPeriod(contest.periodStart)}
-        </span>
+        <span className="text-zinc-500">{formatPeriod(contest.periodStart)}</span>
       </div>
 
-      <div className="flex flex-wrap gap-2">
-        <Chip>5 picks</Chip>
-        <Chip>NIFTY 50</Chip>
-        <Chip>Equal weight</Chip>
-        <Chip>Weekly</Chip>
-      </div>
+      <ContestFormatChips format={contest.format} />
 
       <div className="space-y-2">
         <p className="text-3xl font-medium tabular-nums">
@@ -207,14 +201,6 @@ function Step({
       </div>
       <p className="text-sm text-zinc-500 leading-relaxed">{body}</p>
     </li>
-  );
-}
-
-function Chip({ children }: { children: React.ReactNode }) {
-  return (
-    <span className="text-xs text-zinc-300 border border-zinc-800 rounded-full px-2.5 py-1">
-      {children}
-    </span>
   );
 }
 

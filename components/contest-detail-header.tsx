@@ -1,9 +1,9 @@
 import {
-  formatLabel,
   formatPeriod,
   formatDayMonth,
   formatReturnPct,
 } from "@/lib/contest-display";
+import { ContestFormatChips } from "@/components/contest-format-chips";
 import type { Contest } from "@/lib/repository/contests";
 
 interface StatCell {
@@ -29,18 +29,16 @@ export function ContestDetailHeader({
 }: Props) {
   return (
     <header className="space-y-6">
-      <div className="space-y-2">
+      <div className="space-y-3">
         <div className="flex items-center gap-2 text-xs uppercase tracking-wide text-zinc-500">
           <StatusBadge label={statusLabel} tone={statusTone} />
           <span>·</span>
           <span>{formatDayMonth(contest.periodStart)}</span>
         </div>
-        <h1 className="text-2xl font-medium">
-          {formatLabel(contest.format)} ·{" "}
-          <span className="text-zinc-400">
-            {formatPeriod(contest.periodStart)}
-          </span>
+        <h1 className="text-2xl font-medium text-zinc-100">
+          {formatPeriod(contest.periodStart)}
         </h1>
+        <ContestFormatChips format={contest.format} />
         {subtitle && <p className="text-sm text-zinc-500">{subtitle}</p>}
       </div>
 

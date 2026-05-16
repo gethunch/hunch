@@ -8,11 +8,11 @@ import {
   getUpcomingContests,
 } from "@/lib/repository/contests";
 import { ContestCountdown } from "@/components/contest-countdown";
+import { ContestFormatChips } from "@/components/contest-format-chips";
 import { HunchMark } from "@/components/hunch-mark";
 import { resolveAvatarUrl } from "@/lib/avatars";
 import { NIFTY_50 } from "@/lib/constants";
 import {
-  formatLabel,
   formatPeriod,
   formatReturnPct,
 } from "@/lib/contest-display";
@@ -110,10 +110,9 @@ function ThisWeekSection({
             <span className="text-zinc-300">Open for entries</span>
           )}
           <span className="text-zinc-700">·</span>
-          <span className="text-zinc-500">
-            {formatLabel(contest.format)} · {formatPeriod(contest.periodStart)}
-          </span>
+          <span className="text-zinc-500">{formatPeriod(contest.periodStart)}</span>
         </div>
+        <ContestFormatChips format={contest.format} />
         <div className="space-y-2">
           <p className="text-2xl sm:text-3xl font-medium tabular-nums">
             {contest.entryCount}{" "}
@@ -218,10 +217,9 @@ function LastWeekSection({
         <div className="flex items-center gap-2 text-xs uppercase tracking-wide">
           <span className="text-zinc-500">Final</span>
           <span className="text-zinc-700">·</span>
-          <span className="text-zinc-500">
-            {formatLabel(contest.format)} · {formatPeriod(contest.periodStart)}
-          </span>
+          <span className="text-zinc-500">{formatPeriod(contest.periodStart)}</span>
         </div>
+        <ContestFormatChips format={contest.format} />
         <div className="grid grid-cols-3 gap-px bg-zinc-900 border border-zinc-900 rounded-md overflow-hidden">
           <Stat label="Entries" value={contest.entryCount.toString()} />
           <Stat
