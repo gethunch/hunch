@@ -51,7 +51,7 @@ export default async function ProfilePage({
           <Image src={avatarSrc} alt="" width={80} height={80} unoptimized />
         </div>
         <div className="space-y-1">
-          <h1 className="text-2xl font-medium">{fullName}</h1>
+          <h1 className="text-3xl font-medium tracking-tight">{fullName}</h1>
           <p className="text-sm tabular-nums text-zinc-400">
             {user.username && (
               <>

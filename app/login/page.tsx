@@ -6,7 +6,7 @@ export default function LoginPage() {
     <main className="min-h-screen flex items-center justify-center px-4">
       <div className="w-full max-w-sm space-y-8">
         <div className="space-y-2">
-          <h1 className="text-2xl font-medium">Sign in to Hunch</h1>
+          <h1 className="text-3xl font-medium tracking-tight">Sign in to Hunch</h1>
           <p className="text-sm text-zinc-400">
             Phone number, then a 6-digit code.
           </p>

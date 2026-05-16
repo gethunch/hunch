@@ -35,7 +35,7 @@ export function ContestDetailHeader({
           <span>·</span>
           <span>{formatDayMonth(contest.periodStart)}</span>
         </div>
-        <h1 className="text-2xl font-medium text-zinc-100">
+        <h1 className="text-3xl font-medium tracking-tight text-zinc-100">
           {formatPeriod(contest.periodStart)}
         </h1>
         <ContestFormatChips format={contest.format} />
