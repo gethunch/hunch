@@ -3,6 +3,7 @@ import { eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { users } from "@/lib/db/schema";
 import { createClient } from "@/lib/supabase/server";
+import { safeNextPath } from "@/lib/safe-next";
 
 // Lands here after a user clicks the email-verification link Supabase sends in
 // response to `auth.updateUser({ email })`. Exchange the code for a session,
@@ -11,7 +12,10 @@ import { createClient } from "@/lib/supabase/server";
 export async function GET(request: Request) {
   const url = new URL(request.url);
   const code = url.searchParams.get("code");
-  const next = url.searchParams.get("next") ?? "/contest?email=verified";
+  const next = safeNextPath(
+    url.searchParams.get("next"),
+    "/contest?email=verified",
+  );
 
   if (!code) {
     return NextResponse.redirect(

@@ -3,13 +3,14 @@
 import { useState, useTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { sendOtp, verifyOtp } from "@/app/login/actions";
+import { safeNextPath } from "@/lib/safe-next";
 
 type Step = "phone" | "otp";
 
 export function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const nextPath = searchParams.get("next") ?? "/contest";
+  const nextPath = safeNextPath(searchParams.get("next"), "/contest");
 
   const [step, setStep] = useState<Step>("phone");
   const [phone, setPhone] = useState("");
