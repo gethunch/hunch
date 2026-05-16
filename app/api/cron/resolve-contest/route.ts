@@ -3,7 +3,7 @@
 // is invoked manually via curl with the Bearer secret.
 
 import { NextResponse } from "next/server";
-import { and, asc, eq, lte, sql } from "drizzle-orm";
+import { and, asc, eq, inArray, lte, sql } from "drizzle-orm";
 import { db } from "@/lib/db";
 import {
   contests,
@@ -132,17 +132,34 @@ export async function GET(request: Request) {
       return "already-resolved" as const;
     }
 
-    // Stamp exit_price on every pick.
-    for (const c of computed) {
-      for (const p of c.picks) {
-        const close = closeBySymbol.get(p.symbol);
-        if (close == null) continue;
-        await tx
-          .update(entryPicks)
-          .set({ exitPrice: close })
-          .where(eq(entryPicks.id, p.id));
-      }
+    // Batched exit_price stamp: one UPDATE per distinct symbol the contest
+    // actually used, scoped to entries in this contest. Avoids N×5 round-trips
+    // (would blow up at 1000+ entries — 5000+ statements in one tx).
+    const symbolsInContest = new Set<string>();
+    for (const c of computed) for (const p of c.picks) symbolsInContest.add(p.symbol);
+    const entryIdsInContest = computed.map((c) => c.entryId);
+    for (const symbol of symbolsInContest) {
+      const close = closeBySymbol.get(symbol);
+      if (close == null) continue;
+      await tx
+        .update(entryPicks)
+        .set({ exitPrice: close })
+        .where(
+          and(
+            eq(entryPicks.symbol, symbol),
+            inArray(entryPicks.entryId, entryIdsInContest),
+          ),
+        );
     }
+
+    // Pre-fetch all participating users in a single SELECT instead of one
+    // SELECT per entry inside the loop below.
+    const userIds = Array.from(new Set(computed.map((c) => c.userId)));
+    const userRows =
+      userIds.length === 0
+        ? []
+        : await tx.select().from(users).where(inArray(users.id, userIds));
+    const userById = new Map(userRows.map((u) => [u.id, u]));
 
     // Per-entry: apply rating delta, write entry rank/return/delta, update user.
     for (let i = 0; i < computed.length; i++) {
@@ -150,11 +167,7 @@ export async function GET(request: Request) {
       const rank = i + 1;
       const rankFraction = rank / total;
 
-      const [user] = await tx
-        .select()
-        .from(users)
-        .where(eq(users.id, c.userId))
-        .limit(1);
+      const user = userById.get(c.userId);
       if (!user) continue;
 
       const before = user.rating;

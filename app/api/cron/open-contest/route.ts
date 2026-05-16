@@ -3,7 +3,7 @@
 // is invoked manually via curl with the Bearer secret.
 
 import { NextResponse } from "next/server";
-import { and, asc, eq, lte } from "drizzle-orm";
+import { and, asc, eq, inArray, lte } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { contests, entries, entryPicks } from "@/lib/db/schema";
 import { CONTEST_FORMAT_WEEKLY_PICK_5, NIFTY_50 } from "@/lib/constants";
@@ -44,26 +44,41 @@ export async function GET(request: Request) {
   const prices = await fetchDailyPrices(contest.periodStart, symbols);
   const priceBySymbol = new Map(prices.map((p) => [p.symbol, p.open]));
 
-  // All picks across all entries for this contest.
-  const allPicks = await db
-    .select({
-      pickId: entryPicks.id,
-      symbol: entryPicks.symbol,
-    })
-    .from(entryPicks)
-    .innerJoin(entries, eq(entryPicks.entryId, entries.id))
+  // Entry ids + the distinct symbols those entries picked. We only need to
+  // batch-update entry_picks by symbol scoped to this contest's entries.
+  const entryRows = await db
+    .select({ id: entries.id })
+    .from(entries)
     .where(eq(entries.contestId, contest.id));
+  const entryIdsInContest = entryRows.map((e) => e.id);
+
+  const symbolRows =
+    entryIdsInContest.length === 0
+      ? []
+      : await db
+          .selectDistinct({ symbol: entryPicks.symbol })
+          .from(entryPicks)
+          .where(inArray(entryPicks.entryId, entryIdsInContest));
+  const symbolsInContest = symbolRows.map((s) => s.symbol);
 
   let updated = 0;
   await db.transaction(async (tx) => {
-    for (const row of allPicks) {
-      const open = priceBySymbol.get(row.symbol);
+    // One UPDATE per distinct symbol, scoped to this contest's entries.
+    // Avoids issuing N×5 statements for an N-entry contest.
+    for (const symbol of symbolsInContest) {
+      const open = priceBySymbol.get(symbol);
       if (open == null) continue;
-      await tx
+      const rows = await tx
         .update(entryPicks)
         .set({ entryPrice: open })
-        .where(eq(entryPicks.id, row.pickId));
-      updated++;
+        .where(
+          and(
+            eq(entryPicks.symbol, symbol),
+            inArray(entryPicks.entryId, entryIdsInContest),
+          ),
+        )
+        .returning({ id: entryPicks.id });
+      updated += rows.length;
     }
     await tx
       .update(contests)
