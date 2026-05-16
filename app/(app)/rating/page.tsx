@@ -92,6 +92,9 @@ function Shell({
   children: React.ReactNode;
 }) {
   return (
+    // 6xl is intentionally wider than the rest of the app (3xl) — this page
+    // is the only table-heavy view in v1, and a 6-column table at 3xl
+    // squeezes uncomfortably. Reviewed and kept after the design audit.
     <main className="max-w-6xl mx-auto px-6 py-10 space-y-6">
       <header className="space-y-2">
         <h1 className="text-3xl font-medium tracking-tight">Rating</h1>
