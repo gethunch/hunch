@@ -177,10 +177,28 @@ A public `avatars` bucket holds user-uploaded profile pictures. RLS allows publi
 
 Setup is one-off — apply via `lib/db/migrations/0002_avatars_bucket.sql` (see "Run migrations" above). Idempotent: re-running drops + recreates policies.
 
+**Security-critical**: the browser client uploads avatars directly to Supabase Storage. Without the per-owner RLS policies below, any authenticated user could overwrite any other user's avatar (the `updateUserAvatar` action only checks that the URL prefix matches the *uploader's* user id — not the *uploaded path's* user id; the RLS policy is what closes that gap). The migration sets up the right policies; the verification below confirms they actually applied in your environment.
+
 Inspect / debug:
 ```sql
 select * from storage.buckets where id = 'avatars';
 select policyname, cmd, qual, with_check from pg_policies where tablename = 'objects' and policyname like '%avatar%';
 ```
+
+Verify after applying (in Supabase SQL Editor, against the deployed project):
+```sql
+-- Expect 4 rows: 1 SELECT (public), 1 INSERT/UPDATE/DELETE each scoped by auth.uid()::text.
+select policyname, cmd
+from pg_policies
+where tablename = 'objects'
+  and policyname in (
+    'Public avatar reads',
+    'Avatar uploads by owner',
+    'Avatar updates by owner',
+    'Avatar deletes by owner'
+  );
+```
+
+Run this once on each environment (prod, preview, dev) after a fresh deploy. Add to the post-deploy checklist.
 
 Uploaded objects are listed in Supabase dashboard → Storage → `avatars` → `<user_id>/avatar.<ext>`.
